@@ -37,12 +37,10 @@ private:
   std::vector<point> m_points;
   std::vector<segment> m_segments;
   std::set<point> m_sorted_points;
-  double m_vectorial_product;
 };
 
 //------------------------------------------------------------------------------
-convex_shape::convex_shape(const point & p1,const point & p2,const point & p3):
-  m_vectorial_product(0)
+convex_shape::convex_shape(const point & p1,const point & p2,const point & p3)
 {
   m_points.push_back(p1);
   m_points.push_back(p2);
@@ -53,7 +51,6 @@ convex_shape::convex_shape(const point & p1,const point & p2,const point & p3):
   m_segments.push_back(segment(p1,p2));
   m_segments.push_back(segment(p2,p3));
   m_segments.push_back(segment(p3,p1));
-  m_vectorial_product = m_segments[0].vectorial_product(m_segments[1]);
 }
 
 //------------------------------------------------------------------------------
@@ -92,25 +89,39 @@ void convex_shape::display_points(void)const
 
 bool convex_shape::add(const point & p)
 {
+  // For each segment except of latest one that will be broken in 2 segments due to the new point
+  bool l_convex = true;
+  for(unsigned int l_segment_index = 0 ; l_convex && l_segment_index < m_segments.size() - 1; ++l_segment_index)
+    {
+      // Get a third point outside of segment
+      point l_third_point = m_points[(l_segment_index + 2) & m_points.size()]  ;
+      double l_vector_produc = m_segments[l_segment_index].vectorial_product(segment(m_points[l_segment_index],l_third_point));
+      l_convex = segment::check_convex_continuation(m_segments[l_segment_index].vectorial_product(segment(m_points[l_segment_index],p)),l_vector_produc);
+    }
+  if(!l_convex) return false;
+
   // Create temporary segment between latest point and new point
   segment l_tmp_segment1(m_points[m_points.size()-1],p);
   segment l_tmp_segment2(p,m_points[0]);
 
-  // Insure that sign of previous vectorial product is kept
-  double l_prod_vec1 = m_segments[m_segments.size()-1].vectorial_product(l_tmp_segment1);
-  double l_prod_vec2 = l_tmp_segment1.vectorial_product(l_tmp_segment2);
-  double l_prod_vec3 = l_tmp_segment2.vectorial_product(m_segments[0]);
-  bool l_ok = segment::check_convex_continuation(l_prod_vec1,m_vectorial_product) && segment::check_convex_continuation(l_prod_vec2,m_vectorial_product) && segment::check_convex_continuation(l_prod_vec3,m_vectorial_product);
-
-  // If shape is still convex than add the new point and the related segments
-  if(l_ok)
+  double l_orient = 0;
+  for(unsigned int l_point_index = 1 ; l_point_index < m_points.size() - 1;++l_point_index)
     {
-      m_segments.pop_back();
-      m_segments.push_back(l_tmp_segment1);
-      m_segments.push_back(l_tmp_segment2);
-      m_points.push_back(p);
+      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(m_points[m_points.size()-1],m_points[l_point_index])),l_orient);      
     }
+  if(!l_convex) return false;
+  l_orient = 0;
+  for(unsigned int l_point_index = 1 ; l_point_index < m_points.size() - 1;++l_point_index)
+    {
+      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(p,m_points[l_point_index])),l_orient);      
+    }
+  if(!l_convex) return false;
 
-  return l_ok;
+  m_segments.pop_back();
+  m_segments.push_back(l_tmp_segment1);
+  m_segments.push_back(l_tmp_segment2);
+  m_points.push_back(p);
+
+  return true;
 }
 #endif // _CONVEX_SHAPE_HPP_
