@@ -20,12 +20,13 @@
 
 #include "point.hpp"
 #include "segment.hpp"
+#include "shape.hpp"
 #include <vector>
 #include <set>
 
 #include <iostream>
 
-class convex_shape
+class convex_shape: public shape
 {
 public:
   convex_shape(const point & p1,const point & p2,const point & p3);
@@ -34,23 +35,21 @@ public:
   bool add(const point & p);
   void display_points(void)const;
 private:
-  std::vector<point> m_points;
-  std::vector<segment> m_segments;
   std::set<point> m_sorted_points;
 };
 
 //------------------------------------------------------------------------------
 convex_shape::convex_shape(const point & p1,const point & p2,const point & p3)
 {
-  m_points.push_back(p1);
-  m_points.push_back(p2);
-  m_points.push_back(p3);
+  internal_add(p1);
+  internal_add(p2);
+  internal_add(p3);
   m_sorted_points.insert(p1);
   m_sorted_points.insert(p2);
   m_sorted_points.insert(p3);
-  m_segments.push_back(segment(p1,p2));
-  m_segments.push_back(segment(p2,p3));
-  m_segments.push_back(segment(p3,p1));
+  internal_add(segment(p1,p2));
+  internal_add(segment(p2,p3));
+  internal_add(segment(p3,p1));
 }
 
 //------------------------------------------------------------------------------
@@ -63,14 +62,11 @@ bool convex_shape::find(const point & p)const
 //------------------------------------------------------------------------------
 bool convex_shape::contains(const point & p)const
 {
-  std::vector<segment>::const_iterator l_iter = m_segments.begin();
-  std::vector<segment>::const_iterator l_iter_end = m_segments.end();
   double l_orient = 0;
   bool l_contain = true;
-  while(l_iter != l_iter_end && l_contain)
+  for(unsigned int l_index = 0 ; l_index < get_nb_segment() ; ++ l_index)
     {
-      l_contain = segment::check_convex_continuation(l_iter->vectorial_product(segment(l_iter->get_source(),p)),l_orient);
-      ++l_iter;
+      l_contain = segment::check_convex_continuation(get_segment(l_index).vectorial_product(segment(get_segment(l_index).get_source(),p)),l_orient);
     }
   return l_contain;
 }
@@ -78,49 +74,47 @@ bool convex_shape::contains(const point & p)const
 //------------------------------------------------------------------------------
 void convex_shape::display_points(void)const
 {  
-  std::vector<point>::const_iterator l_iter = m_points.begin();
-  std::vector<point>::const_iterator l_iter_end = m_points.end();
-  while(l_iter != l_iter_end)
+  for(unsigned int l_index = 0 ; l_index < get_nb_point() ; ++l_index)
     {
-      std::cout << "Shape point(" << l_iter->get_x() << "," <<  l_iter->get_y() << ")" << std::endl ;
-      ++l_iter;
+      std::cout << "Shape point(" << get_point(l_index).get_x() << "," <<  get_point(l_index).get_y() << ")" << std::endl ;
     }
 }
 
+//------------------------------------------------------------------------------
 bool convex_shape::add(const point & p)
 {
   // For each segment except of latest one that will be broken in 2 segments due to the new point
   bool l_convex = true;
-  for(unsigned int l_segment_index = 0 ; l_convex && l_segment_index < m_segments.size() - 1; ++l_segment_index)
+  for(unsigned int l_segment_index = 0 ; l_convex && l_segment_index < this->get_nb_segment() - 1; ++l_segment_index)
     {
       // Get a third point outside of segment
-      point l_third_point = m_points[(l_segment_index + 2) & m_points.size()]  ;
-      double l_vector_produc = m_segments[l_segment_index].vectorial_product(segment(m_points[l_segment_index],l_third_point));
-      l_convex = segment::check_convex_continuation(m_segments[l_segment_index].vectorial_product(segment(m_points[l_segment_index],p)),l_vector_produc);
+      point l_third_point = get_point((l_segment_index + 2) % get_nb_point());
+      double l_vector_produc = get_segment(l_segment_index).vectorial_product(segment(get_point(l_segment_index),l_third_point));
+      l_convex = segment::check_convex_continuation(get_segment(l_segment_index).vectorial_product(segment(get_point(l_segment_index),p)),l_vector_produc);
     }
   if(!l_convex) return false;
 
   // Create temporary segment between latest point and new point
-  segment l_tmp_segment1(m_points[m_points.size()-1],p);
-  segment l_tmp_segment2(p,m_points[0]);
+  segment l_tmp_segment1(get_point(get_nb_point()-1),p);
+  segment l_tmp_segment2(p,get_point(0));
 
   double l_orient = 0;
-  for(unsigned int l_point_index = 1 ; l_point_index < m_points.size() - 1;++l_point_index)
+  for(unsigned int l_point_index = 1 ; l_point_index < shape::get_nb_point() - 1;++l_point_index)
     {
-      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(m_points[m_points.size()-1],m_points[l_point_index])),l_orient);      
+      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(get_point(get_nb_point()-1),get_point(l_point_index))),l_orient);      
     }
   if(!l_convex) return false;
   l_orient = 0;
-  for(unsigned int l_point_index = 1 ; l_point_index < m_points.size() - 1;++l_point_index)
+  for(unsigned int l_point_index = 1 ; l_point_index < shape::get_nb_point() - 1;++l_point_index)
     {
-      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(p,m_points[l_point_index])),l_orient);      
+      l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(p,get_point(l_point_index))),l_orient);      
     }
   if(!l_convex) return false;
 
-  m_segments.pop_back();
-  m_segments.push_back(l_tmp_segment1);
-  m_segments.push_back(l_tmp_segment2);
-  m_points.push_back(p);
+  remove_last_segment();
+  internal_add(l_tmp_segment1);
+  internal_add(l_tmp_segment2);
+  internal_add(p);
 
   return true;
 }
