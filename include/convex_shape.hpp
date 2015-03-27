@@ -118,7 +118,7 @@ namespace geometry
     internal_add(l_tmp_segment1);
     internal_add(l_tmp_segment2);
     internal_add(p);
-
+    m_sorted_points.insert(p);
     return true;
   }
 }
