@@ -18,10 +18,13 @@
 #ifndef _POINT_HPP_
 #define _POINT_HPP_
 
+#include <iostream>
+
 namespace geometry
 {
   class point
   {
+    friend  std::ostream & operator<<(std::ostream & p_stream, const point & p_point);
   public:
     inline point(const double & p_x,const double & p_y);
     inline const double & get_x(void)const;
@@ -32,6 +35,11 @@ namespace geometry
     double m_y;
   };
 
+  std::ostream & operator<<(std::ostream & p_stream, const point & p_point)
+  {
+    p_stream << "(" << p_point.m_x << "," << p_point.m_y << ")" ;
+    return p_stream;
+  }
 
   point::point(const double & p_x,const double & p_y):
     m_x(p_x),
