@@ -39,7 +39,7 @@ namespace geometry
     inline double vectorial_product(const segment & p_seg)const;
     inline double scalar_product(const segment & p_seg)const;
     inline double get_square_size(void)const;
-    inline static bool check_convex_continuation(const double & p_vec_prod,double & p_orient);
+    inline static bool check_convex_continuation(const double & p_vec_prod,double & p_orient, bool p_init);
   private:
     point m_source;
     point m_dest;
@@ -163,7 +163,7 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  bool segment::check_convex_continuation(const double & p_vec_prod,double & p_orient)
+  bool segment::check_convex_continuation(const double & p_vec_prod,double & p_orient,bool p_init)
   {
     bool l_convex = true;
     if(p_orient < 0)
@@ -174,7 +174,7 @@ namespace geometry
       {
 	l_convex = p_vec_prod >= 0;
       }
-    else
+    else if(p_init || !p_orient)
       {
 	p_orient = p_vec_prod;
       }

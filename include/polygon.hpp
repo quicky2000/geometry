@@ -149,6 +149,7 @@ namespace geometry
 	segment l_tmp_ref_seg(get_point(l_current_ref_index),get_point(l_candidate_index));
 	double l_orient = 0;
 	l_convex = true;
+	bool l_first = true;
 	for(unsigned int l_check_index = 0 ; l_check_index < get_nb_point() && l_convex ; ++l_check_index)
 	  {
 	    if(l_check_index != l_current_ref_index && l_check_index != l_candidate_index)
@@ -156,7 +157,8 @@ namespace geometry
 #ifdef DEBUG
 		std::cout << "Check : " << get_point(l_check_index) << std::endl;
 #endif
-		l_convex = segment::check_convex_continuation(l_tmp_ref_seg.vectorial_product(segment(get_point(l_check_index),get_point(l_candidate_index))),l_orient);
+		l_convex = segment::check_convex_continuation(l_tmp_ref_seg.vectorial_product(segment(get_point(l_check_index),get_point(l_candidate_index))),l_orient,l_first);
+		l_first = false;
 	      }
 	  }
 	if(l_convex)

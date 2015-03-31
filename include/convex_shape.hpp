@@ -70,7 +70,7 @@ namespace geometry
     for(unsigned int l_index = 0 ; l_index < get_nb_segment() && l_contain ; ++ l_index)
       {
         double l_vectorial_product = get_segment(l_index).vectorial_product(segment(get_segment(l_index).get_source(),p));
-	l_contain = segment::check_convex_continuation(l_vectorial_product,l_orient);
+	l_contain = segment::check_convex_continuation(l_vectorial_product,l_orient,l_index == 0);
       }
     return l_contain;
   }
@@ -94,7 +94,7 @@ namespace geometry
 	// Get a third point outside of segment
 	point l_third_point = get_point((l_segment_index + 2) % get_nb_point());
 	double l_vector_produc = get_segment(l_segment_index).vectorial_product(segment(get_point(l_segment_index),l_third_point));
-	l_convex = segment::check_convex_continuation(get_segment(l_segment_index).vectorial_product(segment(get_point(l_segment_index),p)),l_vector_produc);
+	l_convex = segment::check_convex_continuation(get_segment(l_segment_index).vectorial_product(segment(get_point(l_segment_index),p)),l_vector_produc,l_segment_index==0);
       }
     if(!l_convex) return false;
 
@@ -105,13 +105,13 @@ namespace geometry
     double l_orient = 0;
     for(unsigned int l_point_index = 1 ; l_point_index < shape::get_nb_point() - 1;++l_point_index)
       {
-	l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(get_point(get_nb_point()-1),get_point(l_point_index))),l_orient);      
+	l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(get_point(get_nb_point()-1),get_point(l_point_index))),l_orient,l_point_index == 1);
       }
     if(!l_convex) return false;
     l_orient = 0;
     for(unsigned int l_point_index = 1 ; l_point_index < shape::get_nb_point() - 1;++l_point_index)
       {
-	l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(p,get_point(l_point_index))),l_orient);      
+	l_convex = segment::check_convex_continuation(l_tmp_segment1.vectorial_product(segment(p,get_point(l_point_index))),l_orient,l_point_index==1);
       }
     if(!l_convex) return false;
 
