@@ -34,13 +34,19 @@ namespace geometry
   public:
     inline polygon(const std::vector<point> & p_points);
     inline bool is_convex(void);
-    inline void cut_in_convex_polygon(void)const;
+    inline void cut_in_convex_polygon(void);
+    inline bool contains(const point & p)const;
+    inline const convex_shape & get_convex_shape(void)const;
+    inline ~polygon(void);
   private:
     std::set<point> m_convex_wrapping_points;
+    convex_shape * m_convex_shape;
+    std::vector<polygon*> m_outside_polygons;
   };
 
   //------------------------------------------------------------------------------
-  inline polygon::polygon(const std::vector<point> & p_points)
+  inline polygon::polygon(const std::vector<point> & p_points):
+    m_convex_shape(NULL)
   {
     assert(p_points.size()>=3);
 #ifdef DEBUG
@@ -108,6 +114,17 @@ namespace geometry
   
   }
 
+  //----------------------------------------------------------------------------
+  polygon::~polygon(void)
+  {
+    delete m_convex_shape;
+    for(auto l_iter:m_outside_polygons)
+      {
+	delete l_iter;
+      }
+  }
+
+  //----------------------------------------------------------------------------
   bool polygon::is_convex(void)
   {
     m_convex_wrapping_points.clear();
@@ -124,6 +141,10 @@ namespace geometry
     for(unsigned int l_candidate_index = 1 ; l_candidate_index < get_nb_point(); ++l_candidate_index)
       {
 	bool l_convex = true;
+#ifdef DEBUG
+	std::cout << "Candidate : " << get_point(l_candidate_index) << std::endl;
+	std::cout << "Reference : " << get_point(l_current_ref_index) << std::endl;
+#endif
 	// Create temp segment
 	segment l_tmp_ref_seg(get_point(l_current_ref_index),get_point(l_candidate_index));
 	double l_orient = 0;
@@ -132,6 +153,9 @@ namespace geometry
 	  {
 	    if(l_check_index != l_current_ref_index && l_check_index != l_candidate_index)
 	      {
+#ifdef DEBUG
+		std::cout << "Check : " << get_point(l_check_index) << std::endl;
+#endif
 		l_convex = segment::check_convex_continuation(l_tmp_ref_seg.vectorial_product(segment(get_point(l_check_index),get_point(l_candidate_index))),l_orient);
 	      }
 	  }
@@ -142,8 +166,86 @@ namespace geometry
 	    l_current_ref_index = l_candidate_index;
 	  }
       }
-    return m_convex_wrapping_points.size() == get_nb_point();
+    bool l_result = m_convex_wrapping_points.size() == get_nb_point();
+    assert(l_convex_wrapping.size() >= 3);
+    m_convex_shape = new convex_shape(l_convex_wrapping[0],l_convex_wrapping[1],l_convex_wrapping[2]);
+    for(unsigned int l_index = 3; l_index < l_convex_wrapping.size() ; ++l_index)
+      {
+        m_convex_shape->add(l_convex_wrapping[l_index]);
+      }
+    return l_result;
   }
+
+  //----------------------------------------------------------------------------
+  void polygon::cut_in_convex_polygon(void)
+  {
+    // Store previous index point which belongs to convex shape.
+    // This is the case by construction for index 0
+    unsigned int l_previous_index = 0;
+    std::vector<point> l_current_points;
+    bool l_polygon_started = false;
+    for(unsigned int l_index = 1; l_index < get_nb_point() + 1; ++l_index)
+      {
+	unsigned int l_real_index = l_index % get_nb_point();
+	// Search for point in convex wrapping shape
+	bool l_convex_point = m_convex_wrapping_points.end() != m_convex_wrapping_points.find(get_point(l_real_index));
+	// If point doesnt belong to convex wrapping shape then this is the beginning of an outside polygon
+	if(!l_convex_point && !l_polygon_started)
+	  {
+	    l_current_points.push_back(get_point(l_previous_index));
+	    l_polygon_started = true;
+	  }
+	if(l_polygon_started)
+	  {
+	    l_current_points.push_back(get_point(l_real_index));
+	    if(l_convex_point)
+	      {
+		m_outside_polygons.push_back(new polygon(l_current_points));
+		l_polygon_started = false;
+		// remove all current points
+		l_current_points.clear();
+	      }
+	  }
+	if(l_convex_point)
+	  {
+	    l_previous_index = l_real_index;
+	  }
+      }
+    for(auto l_iter:m_outside_polygons)
+      {
+	if(!l_iter->is_convex())
+	  {
+	    l_iter->cut_in_convex_polygon();
+	  }
+      }
+  }
+  //----------------------------------------------------------------------------
+  const convex_shape & polygon::get_convex_shape(void)const
+  {
+    return *m_convex_shape;
+  }
+  //----------------------------------------------------------------------------
+  bool polygon::contains(const point & p)const
+  {
+    assert(m_convex_shape);
+    if(!this->shape::contains(p))
+      {
+	return false;
+      }
+     if(m_convex_shape->contains(p))
+       {
+         for(auto l_iter : m_outside_polygons)
+  	  {
+  	    if(l_iter->contains(p))
+  	      {
+ 		return false;
+ 	      }
+ 	  }
+          return true;
+       }
+    return false;
+  }
+
 }
 #endif /* _POLYGON_HPP_ */
 //EOF
