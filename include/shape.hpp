@@ -23,6 +23,7 @@
 #include "segment.hpp"
 #include <vector>
 #include <cinttypes>
+#include <limits>
 
 namespace geometry
 {
@@ -34,6 +35,8 @@ namespace geometry
     inline uint32_t get_nb_segment(void)const;
     inline const segment & get_segment(const uint32_t & p_index)const;
     inline const point & get_point(const uint32_t & p_index)const;
+    inline virtual bool contains(const point & p)const=0;
+    inline virtual ~shape(void){}
   protected:
     inline void internal_add(const point & p_point);
     inline void internal_add(const segment & p_segment);
@@ -41,10 +44,18 @@ namespace geometry
   private:
     std::vector<point> m_points;
     std::vector<segment> m_segments;
+    double m_min_x;
+    double m_max_x;
+    double m_min_y;
+    double m_max_y;
   };
 
   //------------------------------------------------------------------------------
-  shape::shape(void)
+  shape::shape(void):
+    m_min_x(std::numeric_limits<double>::max()),
+    m_max_x(std::numeric_limits<double>::lowest()),
+    m_min_y(std::numeric_limits<double>::max()),
+    m_max_y(std::numeric_limits<double>::lowest())
   {
   }
 
@@ -77,6 +88,10 @@ namespace geometry
   //------------------------------------------------------------------------------
   void shape::internal_add(const point & p_point)
   {
+    if(p_point.get_x() > m_max_x) m_max_x = p_point.get_x();
+    if(p_point.get_y() > m_max_y) m_max_y = p_point.get_y();
+    if(p_point.get_x() < m_min_x) m_min_x = p_point.get_x();
+    if(p_point.get_y() < m_min_y) m_min_y = p_point.get_y();
     m_points.push_back(p_point);
   }
 
@@ -91,6 +106,19 @@ namespace geometry
   {
     assert(m_segments.size());
     m_segments.pop_back();
+  }
+
+  //------------------------------------------------------------------------------
+  bool shape::contains(const point & p)const
+  {
+    if(m_min_x <= p.get_x() && p.get_x() <= m_max_x && m_min_y <= p.get_y() && p.get_y() <= m_max_y)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
   }
 }
 #endif // _SHAPE_HPP_
