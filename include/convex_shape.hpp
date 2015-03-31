@@ -67,9 +67,10 @@ namespace geometry
   {
     double l_orient = 0;
     bool l_contain = true;
-    for(unsigned int l_index = 0 ; l_index < get_nb_segment() ; ++ l_index)
+    for(unsigned int l_index = 0 ; l_index < get_nb_segment() && l_contain ; ++ l_index)
       {
-	l_contain = segment::check_convex_continuation(get_segment(l_index).vectorial_product(segment(get_segment(l_index).get_source(),p)),l_orient);
+        double l_vectorial_product = get_segment(l_index).vectorial_product(segment(get_segment(l_index).get_source(),p));
+	l_contain = segment::check_convex_continuation(l_vectorial_product,l_orient);
       }
     return l_contain;
   }
