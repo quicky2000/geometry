@@ -25,6 +25,7 @@ namespace geometry
 {
   class segment
   {
+    friend  std::ostream & operator<<(std::ostream & p_stream, const segment & p_segment);
   public:
     inline segment(const point & p_source, const point & dest);
     inline const point & get_source(void)const;
@@ -51,14 +52,21 @@ namespace geometry
     double m_min_y;
     double m_max_y;
   };
+  //----------------------------------------------------------------------------
+  std::ostream & operator<<(std::ostream & p_stream, const segment & p_segment)
+  {
+    p_stream << "[" << p_segment.m_source << "->" << p_segment.m_dest << "]" ;
+    return p_stream;
+  }
 
+  //----------------------------------------------------------------------------
   segment::segment(const point & p_source, const point & p_dest):
     m_source(p_source),
     m_dest(p_dest),
     m_coef_x(p_dest.get_x() - p_source.get_x()),
     m_coef_y(p_dest.get_y() - p_source.get_y()),
-    m_horizontal(m_coef_x==0),
-    m_vertical(m_coef_y==0),
+    m_horizontal(m_coef_y==0),
+    m_vertical(m_coef_x==0),
     m_min_x( p_source.get_x() <= p_dest.get_x() ? p_source.get_x() : p_dest.get_x()),
     m_max_x( p_source.get_x() >= p_dest.get_x() ? p_source.get_x() : p_dest.get_x()),
     m_min_y( p_source.get_y() <= p_dest.get_y() ? p_source.get_y() : p_dest.get_y()),
@@ -66,26 +74,31 @@ namespace geometry
   {
   }
 
+  //----------------------------------------------------------------------------
   const point & segment::get_source(void)const
   {
     return m_source;
   }
 
+  //----------------------------------------------------------------------------
   const point & segment::get_dest(void)const
   {
     return m_dest;
   }
 
+  //----------------------------------------------------------------------------
   bool segment::is_horizontal(void)const
   {
     return m_horizontal;
   }
 
+  //----------------------------------------------------------------------------
   bool segment::is_vertical(void)const
   {
     return m_vertical;
   }
 
+  //----------------------------------------------------------------------------
   double segment::get_x(const double & p_y)const
   {
     assert(!m_horizontal);
@@ -98,6 +111,7 @@ namespace geometry
     return l_x;
   }
 
+  //----------------------------------------------------------------------------
   double segment::get_y(const double & p_x)const
   {
     assert(!m_vertical);
@@ -110,31 +124,45 @@ namespace geometry
     return l_y;
   }
 
+  //----------------------------------------------------------------------------
   bool segment::belong(const point & p_point)const
   {
-    return p_point.get_y() == this->get_y(p_point.get_x()) && p_point.get_x() >= m_min_x && p_point.get_x() <= m_max_x && p_point.get_y() >= m_min_y && p_point.get_y() <= m_max_y;
+    if(!m_vertical && !m_horizontal)
+      {
+        return p_point.get_y() == this->get_y(p_point.get_x()) && p_point.get_x() >= m_min_x && p_point.get_x() <= m_max_x && p_point.get_y() >= m_min_y && p_point.get_y() <= m_max_y;
+      }
+    else if(m_vertical)
+      {
+        return m_min_y <= p_point.get_y() && p_point.get_y() <= m_max_y;
+      }
+    return m_min_x <= p_point.get_x() && p_point.get_x() <= m_max_x;
   }
 
+  //----------------------------------------------------------------------------
   double segment::get_side(const point & p_point)const
   {
     return m_coef_x * (p_point.get_y() - m_source.get_y()) - m_coef_y * (p_point.get_x() - m_source.get_x());
   }
 
+  //----------------------------------------------------------------------------
   double segment::vectorial_product(const segment & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_y - m_coef_y * p_seg.m_coef_x ;
   }
 
+  //----------------------------------------------------------------------------
   double segment::scalar_product(const segment & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_x + m_coef_y * p_seg.m_coef_y ;
   }
 
+  //----------------------------------------------------------------------------
   double segment::get_square_size(void)const
   {
     return m_coef_x * m_coef_x+ m_coef_y * m_coef_y;
   }
 
+  //----------------------------------------------------------------------------
   bool segment::check_convex_continuation(const double & p_vec_prod,double & p_orient)
   {
     bool l_convex = true;
