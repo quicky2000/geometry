@@ -29,6 +29,7 @@ namespace geometry
 {
   class shape
   {
+    friend  std::ostream & operator<<(std::ostream & p_stream, const shape & p_shape);
   public:
     inline shape(void);
     inline uint32_t get_nb_point(void)const;
@@ -49,6 +50,18 @@ namespace geometry
     double m_min_y;
     double m_max_y;
   };
+
+  //----------------------------------------------------------------------------
+  std::ostream & operator<<(std::ostream & p_stream, const shape & p_shape)
+  {
+    p_stream << "{" ;
+    for(auto l_iter : p_shape.m_points)
+      {
+        p_stream << l_iter << " ";
+      }
+    p_stream << "}" ;
+    return p_stream;
+  }
 
   //------------------------------------------------------------------------------
   shape::shape(void):
