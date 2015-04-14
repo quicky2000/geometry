@@ -30,36 +30,48 @@ namespace geometry
     inline const double & get_x(void)const;
     inline const double & get_y(void)const;
     inline bool operator<(const point & p2)const; 
+    inline bool operator!=(const point & p2)const; 
   private:
     double m_x;
     double m_y;
   };
 
+  //----------------------------------------------------------------------------
   std::ostream & operator<<(std::ostream & p_stream, const point & p_point)
   {
     p_stream << "(" << p_point.m_x << "," << p_point.m_y << ")" ;
     return p_stream;
   }
 
+  //----------------------------------------------------------------------------
   point::point(const double & p_x,const double & p_y):
     m_x(p_x),
     m_y(p_y)
   {
   }
 
+  //----------------------------------------------------------------------------
   const double & point::get_x(void)const
   {
     return m_x;
   }
 
+  //----------------------------------------------------------------------------
   const double & point::get_y(void)const
   {
     return m_y;
   }
 
+  //----------------------------------------------------------------------------
   bool point::operator<(const point & p2)const
   {
     return ( m_x != p2.m_x ? m_x < p2.m_x : m_y < p2.m_y);
+  }
+
+  //----------------------------------------------------------------------------
+  bool point::operator!=(const point & p2)const
+  {
+    return m_x != p2.m_x ||  m_y != p2.m_y;
   }
 }
 #endif /* _POINT_HPP_ */
