@@ -27,19 +27,24 @@
 
 namespace geometry
 {
-  template <typename T=double> 
+  template <typename T>
+  class shape;
+
+  template <typename T>
+  std::ostream & operator<<(std::ostream & p_stream, const shape<T> & p_shape);
+
+  template <typename T>
   class shape
   {
-    template <typename Y> 
-    friend  std::ostream & operator<<(std::ostream & p_stream, const shape<T> & p_shape);
+    friend  std::ostream & operator<< <>(std::ostream & p_stream, const shape<T> & p_shape);
   public:
     inline shape<T>(void);
     inline uint32_t get_nb_point(void)const;
     inline uint32_t get_nb_segment(void)const;
     inline const segment<T> & get_segment(const uint32_t & p_index)const;
     inline const point<T> & get_point(const uint32_t & p_index)const;
-    inline virtual bool contains(const point<T> & p)const=0;
-    inline virtual ~shape<T>(void){}
+    inline virtual bool contains(const point<T> & p,bool p_consider_line=true)const=0;
+    inline virtual ~shape(void){}
   protected:
     inline void internal_add(const point<T> & p_point);
     inline void internal_add(const segment<T> & p_segment);
@@ -134,7 +139,7 @@ namespace geometry
 
   //------------------------------------------------------------------------------
   template <typename T> 
-  bool shape<T>::contains(const point<T> & p)const
+  bool shape<T>::contains(const point<T> & p, bool p_consider_line)const
   {
     if(m_min_x <= p.get_x() && p.get_x() <= m_max_x && m_min_y <= p.get_y() && p.get_y() <= m_max_y)
       {

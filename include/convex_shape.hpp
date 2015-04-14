@@ -35,11 +35,13 @@ namespace geometry
   public:
     convex_shape(const point<T> & p1,const point<T> & p2,const point<T> & p3);
     bool find(const point<T> & p)const;
-    bool contains(const point<T> & p)const;
+    bool contains(const point<T> & p,bool p_consider_line=true)const;
+    void define_polygon_segments(const std::vector<bool> & p_polygon_segments);
     bool add(const point<T> & p);
     void display_points(void)const;
   private:
     std::set<point<T>> m_sorted_points;
+    std::vector<bool> m_polygon_segments;
   };
 
   //------------------------------------------------------------------------------
@@ -59,6 +61,14 @@ namespace geometry
 
   //------------------------------------------------------------------------------
   template <typename T> 
+  void convex_shape<T>::define_polygon_segments(const std::vector<bool> & p_polygon_segments)
+  {
+    assert(p_polygon_segments.size() == this->get_nb_segment());
+    m_polygon_segments = p_polygon_segments;
+  }
+
+  //------------------------------------------------------------------------------
+  template <typename T> 
   bool convex_shape<T>::find(const point<T> & p)const
   {
     return m_sorted_points.find(p) != m_sorted_points.end();
@@ -67,14 +77,15 @@ namespace geometry
 
   //------------------------------------------------------------------------------
   template <typename T> 
-  bool convex_shape<T>::contains(const point<T> & p)const
+  bool convex_shape<T>::contains(const point<T> & p,bool p_consider_line)const
   {
+    std::cout << "Contains test of convex shape " << *this << " for point " << p << " consider line " << p_consider_line << std::endl;
     T l_orient = 0;
     bool l_contain = true;
     for(unsigned int l_index = 0 ; l_index < this->get_nb_segment() && l_contain ; ++ l_index)
       {
         T l_vectorial_product = this->get_segment(l_index).vectorial_product(segment<T>(this->get_segment(l_index).get_source(),p));
-	l_contain = segment<T>::check_convex_continuation(l_vectorial_product,l_orient,l_index == 0);
+	l_contain = segment<T>::check_convex_continuation(l_vectorial_product,l_orient,l_index == 0,p_consider_line && (!m_polygon_segments.size() || m_polygon_segments[l_index]));
       }
     return l_contain;
   }

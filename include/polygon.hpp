@@ -36,7 +36,7 @@ namespace geometry
     inline polygon(const std::vector<point<T>> & p_points);
     inline bool is_convex(void);
     inline void cut_in_convex_polygon(void);
-    inline bool contains(const point<T> & p)const;
+    inline bool contains(const point<T> & p,bool p_consider_line=true)const;
     inline const convex_shape<T> & get_convex_shape(void)const;
     inline ~polygon(void);
   private:
@@ -48,7 +48,7 @@ namespace geometry
   //------------------------------------------------------------------------------
   template <typename T> 
   inline polygon<T>::polygon(const std::vector<point<T>> & p_points):
-    m_convex_shape(NULL)
+    m_convex_shape(nullptr)
   {
     assert(p_points.size()>=3);
 #ifdef DEBUG
@@ -141,6 +141,9 @@ namespace geometry
     m_convex_wrapping_points.insert(this->get_point(0));
     unsigned int l_current_ref_index = 0;
 
+    bool l_previous_point_convex = true;
+    std::vector<bool> l_polygon_segment;
+
     // Iteration on all points to check if its belongs to convex wrapping
     for(unsigned int l_candidate_index = 1 ; l_candidate_index < this->get_nb_point(); ++l_candidate_index)
       {
@@ -170,8 +173,12 @@ namespace geometry
 	    l_convex_wrapping.push_back(this->get_point(l_candidate_index));
 	    m_convex_wrapping_points.insert(this->get_point(l_candidate_index));
 	    l_current_ref_index = l_candidate_index;
+            l_polygon_segment.push_back(l_previous_point_convex);
 	  }
+        l_previous_point_convex = l_convex;
       }
+    l_polygon_segment.push_back(l_previous_point_convex);
+
     bool l_result = m_convex_wrapping_points.size() == this->get_nb_point();
     assert(l_convex_wrapping.size() >= 3);
     m_convex_shape = new convex_shape<T>(l_convex_wrapping[0],l_convex_wrapping[1],l_convex_wrapping[2]);
@@ -179,6 +186,7 @@ namespace geometry
       {
         m_convex_shape->add(l_convex_wrapping[l_index]);
       }
+    m_convex_shape->define_polygon_segments(l_polygon_segment);
     return l_result;
   }
 
@@ -234,24 +242,25 @@ namespace geometry
   }
   //----------------------------------------------------------------------------
   template <typename T> 
-  bool polygon<T>::contains(const point<T> & p)const
+  bool polygon<T>::contains(const point<T> & p,bool p_consider_line)const
   {
+    std::cout << "Polygon " << *this << " contains " << p << " ? consider line = " << p_consider_line << std::endl ;
     assert(m_convex_shape);
     if(!shape<T>::contains(p))
       {
 	return false;
       }
-     if(m_convex_shape->contains(p))
-       {
-         for(auto l_iter : m_outside_polygons)
+    if(m_convex_shape->contains(p,p_consider_line))
+      {
+	for(auto l_iter : m_outside_polygons)
   	  {
-  	    if(l_iter->contains(p))
+	    if(l_iter->contains(p,!p_consider_line))
   	      {
  		return false;
  	      }
  	  }
-          return true;
-       }
+	return true;
+      }
     return false;
   }
 

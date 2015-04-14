@@ -45,7 +45,7 @@ namespace geometry
     inline const T & get_max_x(void)const;
     inline const T & get_min_y(void)const;
     inline const T & get_max_y(void)const;
-    inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init);
+    inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init, bool p_consider_line=true);
   private:
     point<T> m_source;
     point<T> m_dest;
@@ -187,7 +187,7 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T> 
-  bool segment<T>::check_convex_continuation(const T & p_vec_prod,T & p_orient,bool p_init)
+  bool segment<T>::check_convex_continuation(const T & p_vec_prod,T & p_orient,bool p_init, bool p_consider_line)
   {
     bool l_convex = true;
     if(p_orient < 0)
@@ -201,6 +201,10 @@ namespace geometry
     else if(p_init || !p_orient)
       {
 	p_orient = p_vec_prod;
+      }
+    if(!p_vec_prod && !p_consider_line)
+      {
+	return false;
       }
     return l_convex;
   }

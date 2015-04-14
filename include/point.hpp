@@ -22,11 +22,16 @@
 
 namespace geometry
 {
-  template <typename T=double> 
+  template <typename T>
+  class point;
+
+  template <typename T>
+  std::ostream & operator<<(std::ostream & p_stream, const point<T> & p_point);
+
+  template <typename T>
   class point
   {
-    template <typename Y>
-    friend std::ostream & operator<<(std::ostream & p_stream, const point<T> & p_point);
+    friend std::ostream & operator<< <>(std::ostream & p_stream, const point<T> & p_point);
   public:
     inline point(const T & p_x,const T & p_y);
     inline const T & get_x(void)const;
