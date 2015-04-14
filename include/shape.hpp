@@ -47,11 +47,16 @@ namespace geometry
     inline virtual bool contains(const point<T> & p,bool p_consider_line=true)const=0;
     inline bool is_vertice(const point<T> & p)const;
     inline bool is_on_border(const point<T> & p)const;
+    inline const T & get_min_x(void)const;
+    inline const T & get_min_y(void)const;
+    inline const T & get_max_x(void)const;
+    inline const T & get_max_y(void)const;
     inline virtual ~shape(void){}
   protected:
     inline void internal_add(const point<T> & p_point);
     inline void internal_add(const segment<T> & p_segment);
     inline void remove_last_segment(void);
+    inline const std::vector<point<T>> & get_points(void)const;
   private:
     std::vector<point<T>> m_points;
     std::vector<segment<T>> m_segments;
@@ -118,6 +123,13 @@ namespace geometry
 
   //------------------------------------------------------------------------------
   template <typename T> 
+  const std::vector<point<T>> & shape<T>::get_points(void)const
+  {
+    return m_points;
+  }
+
+  //------------------------------------------------------------------------------
+  template <typename T> 
   uint32_t shape<T>::get_nb_segment(void)const
   {
     return m_segments.size();
@@ -179,6 +191,37 @@ namespace geometry
 	return false;
       }
   }
+
+  //----------------------------------------------------------------------------
+  template <typename T> 
+  const T & shape<T>::get_min_x(void)const
+  {
+    return m_min_x;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T> 
+  const T & shape<T>::get_min_y(void)const
+  {
+    return m_min_y;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T> 
+  const T & shape<T>::get_max_x(void)const
+  {
+    return m_max_x;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T> 
+  const T & shape<T>::get_max_y(void)const
+  {
+    return m_max_y;
+  }
+
+
+
 }
 #endif // _SHAPE_HPP_
 //EOF

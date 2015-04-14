@@ -22,6 +22,7 @@
 #include "segment.hpp"
 #include "shape.hpp"
 #include "convex_shape.hpp"
+#include "quad.hpp"
 #include <vector>
 #include <set>
 #include <stdint.h>
@@ -37,18 +38,21 @@ namespace geometry
     inline bool is_convex(void);
     inline void cut_in_convex_polygon(void);
     inline bool contains(const point<T> & p,bool p_consider_line=true)const;
+    inline void create_quad(void);
     inline const convex_shape<T> & get_convex_shape(void)const;
     inline ~polygon(void);
   private:
     std::set<point<T>> m_convex_wrapping_points;
     convex_shape<T> * m_convex_shape;
     std::vector<polygon<T>*> m_outside_polygons;
+    quad_if<T> * m_quad;
   };
 
   //------------------------------------------------------------------------------
   template <typename T> 
   inline polygon<T>::polygon(const std::vector<point<T>> & p_points):
-    m_convex_shape(nullptr)
+    m_convex_shape(nullptr),
+    m_quad(nullptr)
   {
     assert(p_points.size()>=3);
 #ifdef DEBUG
@@ -120,6 +124,7 @@ namespace geometry
   template <typename T> 
   polygon<T>::~polygon(void)
   {
+    delete m_quad;
     delete m_convex_shape;
     for(auto l_iter:m_outside_polygons)
       {
@@ -192,6 +197,19 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T> 
+  void polygon<T>::create_quad(void)
+  {
+    delete(quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
+			     point<T>(this->get_max_x(),this->get_min_y()),
+			     point<T>(this->get_max_x(),this->get_max_y()),
+			     point<T>(this->get_min_x(),this->get_max_y()),
+			     this->get_points(),
+			     *this))
+		       ;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T> 
   void polygon<T>::cut_in_convex_polygon(void)
   {
     // Store previous index point which belongs to convex shape.
@@ -233,6 +251,12 @@ namespace geometry
 	    l_iter->cut_in_convex_polygon();
 	  }
       }
+    m_quad = quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
+                               point<T>(this->get_max_x(),this->get_min_y()),
+                               point<T>(this->get_max_x(),this->get_max_y()),
+                               point<T>(this->get_min_x(),this->get_max_y()),
+                               this->get_points(),
+                               *this);
   }
   //----------------------------------------------------------------------------
   template <typename T> 
