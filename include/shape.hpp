@@ -27,32 +27,35 @@
 
 namespace geometry
 {
+  template <typename T=double> 
   class shape
   {
-    friend  std::ostream & operator<<(std::ostream & p_stream, const shape & p_shape);
+    template <typename Y> 
+    friend  std::ostream & operator<<(std::ostream & p_stream, const shape<T> & p_shape);
   public:
-    inline shape(void);
+    inline shape<T>(void);
     inline uint32_t get_nb_point(void)const;
     inline uint32_t get_nb_segment(void)const;
-    inline const segment & get_segment(const uint32_t & p_index)const;
-    inline const point & get_point(const uint32_t & p_index)const;
-    inline virtual bool contains(const point & p)const=0;
-    inline virtual ~shape(void){}
+    inline const segment<T> & get_segment(const uint32_t & p_index)const;
+    inline const point<T> & get_point(const uint32_t & p_index)const;
+    inline virtual bool contains(const point<T> & p)const=0;
+    inline virtual ~shape<T>(void){}
   protected:
-    inline void internal_add(const point & p_point);
-    inline void internal_add(const segment & p_segment);
+    inline void internal_add(const point<T> & p_point);
+    inline void internal_add(const segment<T> & p_segment);
     inline void remove_last_segment(void);
   private:
-    std::vector<point> m_points;
-    std::vector<segment> m_segments;
-    double m_min_x;
-    double m_max_x;
-    double m_min_y;
-    double m_max_y;
+    std::vector<point<T>> m_points;
+    std::vector<segment<T>> m_segments;
+    T m_min_x;
+    T m_max_x;
+    T m_min_y;
+    T m_max_y;
   };
 
   //----------------------------------------------------------------------------
-  std::ostream & operator<<(std::ostream & p_stream, const shape & p_shape)
+  template <typename T> 
+  std::ostream & operator<<(std::ostream & p_stream, const shape<T> & p_shape)
   {
     p_stream << "{" ;
     for(auto l_iter : p_shape.m_points)
@@ -64,42 +67,48 @@ namespace geometry
   }
 
   //------------------------------------------------------------------------------
-  shape::shape(void):
-    m_min_x(std::numeric_limits<double>::max()),
-    m_max_x(std::numeric_limits<double>::lowest()),
-    m_min_y(std::numeric_limits<double>::max()),
-    m_max_y(std::numeric_limits<double>::lowest())
+  template <typename T> 
+  shape<T>::shape(void):
+    m_min_x(std::numeric_limits<T>::max()),
+    m_max_x(std::numeric_limits<T>::lowest()),
+    m_min_y(std::numeric_limits<T>::max()),
+    m_max_y(std::numeric_limits<T>::lowest())
   {
   }
 
   //------------------------------------------------------------------------------
-  uint32_t shape::get_nb_point(void)const
+  template <typename T> 
+  uint32_t shape<T>::get_nb_point(void)const
   {
     return m_points.size();
   }
 
   //------------------------------------------------------------------------------
-  uint32_t shape::get_nb_segment(void)const
+  template <typename T> 
+  uint32_t shape<T>::get_nb_segment(void)const
   {
     return m_segments.size();
   }
 
   //------------------------------------------------------------------------------
-  const segment & shape::get_segment(const uint32_t & p_index)const
+  template <typename T> 
+  const segment<T> & shape<T>::get_segment(const uint32_t & p_index)const
   {
     assert(p_index < m_segments.size());
     return m_segments[p_index];
   }
 
   //------------------------------------------------------------------------------
-  const point & shape::get_point(const uint32_t & p_index)const
+  template <typename T> 
+  const point<T> & shape<T>::get_point(const uint32_t & p_index)const
   {
     assert(p_index < m_points.size());
     return m_points[p_index];
   }
 
   //------------------------------------------------------------------------------
-  void shape::internal_add(const point & p_point)
+  template <typename T> 
+  void shape<T>::internal_add(const point<T> & p_point)
   {
     if(p_point.get_x() > m_max_x) m_max_x = p_point.get_x();
     if(p_point.get_y() > m_max_y) m_max_y = p_point.get_y();
@@ -109,20 +118,23 @@ namespace geometry
   }
 
   //------------------------------------------------------------------------------
-  void shape::internal_add(const segment & p_segment)
+  template <typename T> 
+  void shape<T>::internal_add(const segment<T> & p_segment)
   {
     m_segments.push_back(p_segment);
   }
 
   //------------------------------------------------------------------------------
-  void shape::remove_last_segment(void)
+  template <typename T> 
+  void shape<T>::remove_last_segment(void)
   {
     assert(m_segments.size());
     m_segments.pop_back();
   }
 
   //------------------------------------------------------------------------------
-  bool shape::contains(const point & p)const
+  template <typename T> 
+  bool shape<T>::contains(const point<T> & p)const
   {
     if(m_min_x <= p.get_x() && p.get_x() <= m_max_x && m_min_y <= p.get_y() && p.get_y() <= m_max_y)
       {

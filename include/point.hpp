@@ -22,54 +22,62 @@
 
 namespace geometry
 {
+  template <typename T=double> 
   class point
   {
-    friend  std::ostream & operator<<(std::ostream & p_stream, const point & p_point);
+    template <typename Y>
+    friend std::ostream & operator<<(std::ostream & p_stream, const point<T> & p_point);
   public:
-    inline point(const double & p_x,const double & p_y);
-    inline const double & get_x(void)const;
-    inline const double & get_y(void)const;
+    inline point(const T & p_x,const T & p_y);
+    inline const T & get_x(void)const;
+    inline const T & get_y(void)const;
     inline bool operator<(const point & p2)const; 
     inline bool operator!=(const point & p2)const; 
   private:
-    double m_x;
-    double m_y;
+    T m_x;
+    T m_y;
   };
 
   //----------------------------------------------------------------------------
-  std::ostream & operator<<(std::ostream & p_stream, const point & p_point)
+  template <typename T> 
+  std::ostream & operator<<(std::ostream & p_stream, const point<T> & p_point)
   {
     p_stream << "(" << p_point.m_x << "," << p_point.m_y << ")" ;
     return p_stream;
   }
 
   //----------------------------------------------------------------------------
-  point::point(const double & p_x,const double & p_y):
+  template <typename T> 
+  point<T>::point(const T & p_x,const T & p_y):
     m_x(p_x),
     m_y(p_y)
   {
   }
 
   //----------------------------------------------------------------------------
-  const double & point::get_x(void)const
+  template <typename T> 
+  const T & point<T>::get_x(void)const
   {
     return m_x;
   }
 
   //----------------------------------------------------------------------------
-  const double & point::get_y(void)const
+  template <typename T> 
+  const T & point<T>::get_y(void)const
   {
     return m_y;
   }
 
   //----------------------------------------------------------------------------
-  bool point::operator<(const point & p2)const
+  template <typename T> 
+  bool point<T>::operator<(const point & p2)const
   {
     return ( m_x != p2.m_x ? m_x < p2.m_x : m_y < p2.m_y);
   }
 
   //----------------------------------------------------------------------------
-  bool point::operator!=(const point & p2)const
+  template <typename T> 
+  bool point<T>::operator!=(const point & p2)const
   {
     return m_x != p2.m_x ||  m_y != p2.m_y;
   }

@@ -29,29 +29,31 @@
 
 namespace geometry
 {
-  class polygon: public shape
+  template <typename T=double> 
+  class polygon: public shape<T>
   {
   public:
-    inline polygon(const std::vector<point> & p_points);
+    inline polygon(const std::vector<point<T>> & p_points);
     inline bool is_convex(void);
     inline void cut_in_convex_polygon(void);
-    inline bool contains(const point & p)const;
-    inline const convex_shape & get_convex_shape(void)const;
+    inline bool contains(const point<T> & p)const;
+    inline const convex_shape<T> & get_convex_shape(void)const;
     inline ~polygon(void);
   private:
-    std::set<point> m_convex_wrapping_points;
-    convex_shape * m_convex_shape;
-    std::vector<polygon*> m_outside_polygons;
+    std::set<point<T>> m_convex_wrapping_points;
+    convex_shape<T> * m_convex_shape;
+    std::vector<polygon<T>*> m_outside_polygons;
   };
 
   //------------------------------------------------------------------------------
-  inline polygon::polygon(const std::vector<point> & p_points):
+  template <typename T> 
+  inline polygon<T>::polygon(const std::vector<point<T>> & p_points):
     m_convex_shape(NULL)
   {
     assert(p_points.size()>=3);
 #ifdef DEBUG
-    std::vector<point>::const_iterator l_iter_point = p_points.begin();
-    std::vector<point>::const_iterator l_iter_point_end = p_points.end();
+    std::vector<point<T>>::const_iterator l_iter_point = p_points.begin();
+    std::vector<point<T>>::const_iterator l_iter_point_end = p_points.end();
     std::cout << "List of point : " << std::endl ;
     while(l_iter_point != l_iter_point_end)
       {
@@ -61,7 +63,7 @@ namespace geometry
 #endif
 
     // Search for "minimum point"
-    point l_min = p_points[0];
+    point<T> l_min = p_points[0];
     uint32_t l_min_index = 0;
     uint32_t l_index = 0;
     for(l_index = 1; l_index < p_points.size();++l_index)
@@ -75,9 +77,9 @@ namespace geometry
     l_index = l_min_index;
 
     // Fill point list from the minimum point and duplicate it at the end of list
-    while(get_nb_point() < p_points.size())
+    while(this->get_nb_point() < p_points.size())
       {
-	internal_add(p_points[l_index]);
+	this->internal_add(p_points[l_index]);
 	l_index = (l_index + 1) % p_points.size();
       }
 
@@ -93,9 +95,9 @@ namespace geometry
 #endif
 
     // Create list of segments
-    for(l_index = 0 ; l_index < get_nb_point();++l_index)
+    for(l_index = 0 ; l_index < this->get_nb_point();++l_index)
       {
-	internal_add(segment(get_point(l_index),get_point((l_index + 1) % get_nb_point())));
+	this->internal_add(segment<T>(this->get_point(l_index),this->get_point((l_index + 1) % this->get_nb_point())));
       }
 
 #ifdef DEBUG
@@ -115,7 +117,8 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  polygon::~polygon(void)
+  template <typename T> 
+  polygon<T>::~polygon(void)
   {
     delete m_convex_shape;
     for(auto l_iter:m_outside_polygons)
@@ -125,52 +128,53 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  bool polygon::is_convex(void)
+  template <typename T> 
+  bool polygon<T>::is_convex(void)
   {
     m_convex_wrapping_points.clear();
 
     // To store the list of points belonging to wrapping shape
-    std::vector<point> l_convex_wrapping;
+    std::vector<point<T>> l_convex_wrapping;
 
     // First point is minimum so it is mandatory included in convex wrapping
-    l_convex_wrapping.push_back(get_point(0));
-    m_convex_wrapping_points.insert(get_point(0));
+    l_convex_wrapping.push_back(this->get_point(0));
+    m_convex_wrapping_points.insert(this->get_point(0));
     unsigned int l_current_ref_index = 0;
 
     // Iteration on all points to check if its belongs to convex wrapping
-    for(unsigned int l_candidate_index = 1 ; l_candidate_index < get_nb_point(); ++l_candidate_index)
+    for(unsigned int l_candidate_index = 1 ; l_candidate_index < this->get_nb_point(); ++l_candidate_index)
       {
 	bool l_convex = true;
 #ifdef DEBUG
-	std::cout << "Candidate : " << get_point(l_candidate_index) << std::endl;
-	std::cout << "Reference : " << get_point(l_current_ref_index) << std::endl;
+	std::cout << "Candidate : " << this->get_point(l_candidate_index) << std::endl;
+	std::cout << "Reference : " << this->get_point(l_current_ref_index) << std::endl;
 #endif
 	// Create temp segment
-	segment l_tmp_ref_seg(get_point(l_current_ref_index),get_point(l_candidate_index));
-	double l_orient = 0;
+	segment<T> l_tmp_ref_seg(this->get_point(l_current_ref_index),this->get_point(l_candidate_index));
+	T l_orient = 0;
 	l_convex = true;
 	bool l_first = true;
-	for(unsigned int l_check_index = 0 ; l_check_index < get_nb_point() && l_convex ; ++l_check_index)
+	for(unsigned int l_check_index = 0 ; l_check_index < this->get_nb_point() && l_convex ; ++l_check_index)
 	  {
 	    if(l_check_index != l_current_ref_index && l_check_index != l_candidate_index)
 	      {
 #ifdef DEBUG
-		std::cout << "Check : " << get_point(l_check_index) << std::endl;
+		std::cout << "Check : " << this->get_point(l_check_index) << std::endl;
 #endif
-		l_convex = segment::check_convex_continuation(l_tmp_ref_seg.vectorial_product(segment(get_point(l_check_index),get_point(l_candidate_index))),l_orient,l_first);
+		l_convex = segment<T>::check_convex_continuation(l_tmp_ref_seg.vectorial_product(segment<T>(this->get_point(l_check_index),this->get_point(l_candidate_index))),l_orient,l_first);
 		l_first = false;
 	      }
 	  }
 	if(l_convex)
 	  {
-	    l_convex_wrapping.push_back(get_point(l_candidate_index));
-	    m_convex_wrapping_points.insert(get_point(l_candidate_index));
+	    l_convex_wrapping.push_back(this->get_point(l_candidate_index));
+	    m_convex_wrapping_points.insert(this->get_point(l_candidate_index));
 	    l_current_ref_index = l_candidate_index;
 	  }
       }
-    bool l_result = m_convex_wrapping_points.size() == get_nb_point();
+    bool l_result = m_convex_wrapping_points.size() == this->get_nb_point();
     assert(l_convex_wrapping.size() >= 3);
-    m_convex_shape = new convex_shape(l_convex_wrapping[0],l_convex_wrapping[1],l_convex_wrapping[2]);
+    m_convex_shape = new convex_shape<T>(l_convex_wrapping[0],l_convex_wrapping[1],l_convex_wrapping[2]);
     for(unsigned int l_index = 3; l_index < l_convex_wrapping.size() ; ++l_index)
       {
         m_convex_shape->add(l_convex_wrapping[l_index]);
@@ -179,27 +183,28 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  void polygon::cut_in_convex_polygon(void)
+  template <typename T> 
+  void polygon<T>::cut_in_convex_polygon(void)
   {
     // Store previous index point which belongs to convex shape.
     // This is the case by construction for index 0
     unsigned int l_previous_index = 0;
-    std::vector<point> l_current_points;
+    std::vector<point<T>> l_current_points;
     bool l_polygon_started = false;
-    for(unsigned int l_index = 1; l_index < get_nb_point() + 1; ++l_index)
+    for(unsigned int l_index = 1; l_index < this->get_nb_point() + 1; ++l_index)
       {
-	unsigned int l_real_index = l_index % get_nb_point();
+	unsigned int l_real_index = l_index % this->get_nb_point();
 	// Search for point in convex wrapping shape
-	bool l_convex_point = m_convex_wrapping_points.end() != m_convex_wrapping_points.find(get_point(l_real_index));
+	bool l_convex_point = m_convex_wrapping_points.end() != m_convex_wrapping_points.find(this->get_point(l_real_index));
 	// If point doesnt belong to convex wrapping shape then this is the beginning of an outside polygon
 	if(!l_convex_point && !l_polygon_started)
 	  {
-	    l_current_points.push_back(get_point(l_previous_index));
+	    l_current_points.push_back(this->get_point(l_previous_index));
 	    l_polygon_started = true;
 	  }
 	if(l_polygon_started)
 	  {
-	    l_current_points.push_back(get_point(l_real_index));
+	    l_current_points.push_back(this->get_point(l_real_index));
 	    if(l_convex_point)
 	      {
 		m_outside_polygons.push_back(new polygon(l_current_points));
@@ -222,15 +227,17 @@ namespace geometry
       }
   }
   //----------------------------------------------------------------------------
-  const convex_shape & polygon::get_convex_shape(void)const
+  template <typename T> 
+  const convex_shape<T> & polygon<T>::get_convex_shape(void)const
   {
     return *m_convex_shape;
   }
   //----------------------------------------------------------------------------
-  bool polygon::contains(const point & p)const
+  template <typename T> 
+  bool polygon<T>::contains(const point<T> & p)const
   {
     assert(m_convex_shape);
-    if(!this->shape::contains(p))
+    if(!shape<T>::contains(p))
       {
 	return false;
       }

@@ -23,44 +23,48 @@
 
 namespace geometry
 {
+  template <typename T=double> 
   class segment
   {
-    friend  std::ostream & operator<<(std::ostream & p_stream, const segment & p_segment);
+    template <typename Y>
+     friend  std::ostream & operator<<(std::ostream & p_stream, const segment<T> & p_segment);
   public:
-    inline segment(const point & p_source, const point & dest);
-    inline const point & get_source(void)const;
-    inline const point & get_dest(void)const;
+    inline segment(const point<T> & p_source, const point<T> & dest);
+    inline const point<T> & get_source(void)const;
+    inline const point<T> & get_dest(void)const;
     inline bool is_horizontal(void)const;
     inline bool is_vertical(void)const;
-    inline double get_x(const double & p_y)const;
-    inline double get_y(const double & p_x)const;
-    inline bool belong(const point & p_point)const;
-    inline double get_side(const point & p_point)const;
-    inline double vectorial_product(const segment & p_seg)const;
-    inline double scalar_product(const segment & p_seg)const;
-    inline double get_square_size(void)const;
-    inline static bool check_convex_continuation(const double & p_vec_prod,double & p_orient, bool p_init);
+    inline T get_x(const T & p_y)const;
+    inline T get_y(const T & p_x)const;
+    inline bool belong(const point<T> & p_point)const;
+    inline T get_side(const point<T> & p_point)const;
+    inline T vectorial_product(const segment & p_seg)const;
+    inline T scalar_product(const segment & p_seg)const;
+    inline T get_square_size(void)const;
+    inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init);
   private:
-    point m_source;
-    point m_dest;
-    double m_coef_x;
-    double m_coef_y;
+    point<T> m_source;
+    point<T> m_dest;
+    T m_coef_x;
+    T m_coef_y;
     bool m_horizontal;
     bool m_vertical;
-    double m_min_x;
-    double m_max_x;
-    double m_min_y;
-    double m_max_y;
+    T m_min_x;
+    T m_max_x;
+    T m_min_y;
+    T m_max_y;
   };
   //----------------------------------------------------------------------------
-  std::ostream & operator<<(std::ostream & p_stream, const segment & p_segment)
+  template <typename T> 
+  std::ostream & operator<<(std::ostream & p_stream, const segment<T> & p_segment)
   {
     p_stream << "[" << p_segment.m_source << "->" << p_segment.m_dest << "]" ;
     return p_stream;
   }
 
   //----------------------------------------------------------------------------
-  segment::segment(const point & p_source, const point & p_dest):
+  template <typename T> 
+  segment<T>::segment(const point<T> & p_source, const point<T> & p_dest):
     m_source(p_source),
     m_dest(p_dest),
     m_coef_x(p_dest.get_x() - p_source.get_x()),
@@ -75,57 +79,64 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  const point & segment::get_source(void)const
+  template <typename T> 
+  const point<T> & segment<T>::get_source(void)const
   {
     return m_source;
   }
 
   //----------------------------------------------------------------------------
-  const point & segment::get_dest(void)const
+  template <typename T> 
+  const point<T> & segment<T>::get_dest(void)const
   {
     return m_dest;
   }
 
   //----------------------------------------------------------------------------
-  bool segment::is_horizontal(void)const
+  template <typename T> 
+  bool segment<T>::is_horizontal(void)const
   {
     return m_horizontal;
   }
 
   //----------------------------------------------------------------------------
-  bool segment::is_vertical(void)const
+  template <typename T> 
+  bool segment<T>::is_vertical(void)const
   {
     return m_vertical;
   }
 
   //----------------------------------------------------------------------------
-  double segment::get_x(const double & p_y)const
+  template <typename T> 
+  T segment<T>::get_x(const T & p_y)const
   {
     assert(!m_horizontal);
-    double l_x = m_source.get_x();
+    T l_x = m_source.get_x();
     if(!m_vertical)
       {
-	double l_t = (p_y - m_source.get_y())/(m_dest.get_y() - m_source.get_y());
+	T l_t = (p_y - m_source.get_y())/(m_dest.get_y() - m_source.get_y());
 	l_x = (m_dest.get_x() - m_source.get_x()) * l_t + m_source.get_x();
       }
     return l_x;
   }
 
   //----------------------------------------------------------------------------
-  double segment::get_y(const double & p_x)const
+  template <typename T> 
+  T segment<T>::get_y(const T & p_x)const
   {
     assert(!m_vertical);
-    double l_y = m_source.get_y();
+    T l_y = m_source.get_y();
     if(!m_horizontal)
       {
-	double l_t = (p_x - m_source.get_x())/(m_dest.get_x() - m_source.get_x());
+	T l_t = (p_x - m_source.get_x())/(m_dest.get_x() - m_source.get_x());
 	l_y = (m_dest.get_y() - m_source.get_y()) * l_t + m_source.get_y();
       }
     return l_y;
   }
 
   //----------------------------------------------------------------------------
-  bool segment::belong(const point & p_point)const
+  template <typename T> 
+  bool segment<T>::belong(const point<T> & p_point)const
   {
     if(!m_vertical && !m_horizontal)
       {
@@ -139,31 +150,36 @@ namespace geometry
   }
 
   //----------------------------------------------------------------------------
-  double segment::get_side(const point & p_point)const
+  template <typename T> 
+  T segment<T>::get_side(const point<T> & p_point)const
   {
     return m_coef_x * (p_point.get_y() - m_source.get_y()) - m_coef_y * (p_point.get_x() - m_source.get_x());
   }
 
   //----------------------------------------------------------------------------
-  double segment::vectorial_product(const segment & p_seg)const
+  template <typename T> 
+  T segment<T>::vectorial_product(const segment & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_y - m_coef_y * p_seg.m_coef_x ;
   }
 
   //----------------------------------------------------------------------------
-  double segment::scalar_product(const segment & p_seg)const
+  template <typename T> 
+  T segment<T>::scalar_product(const segment & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_x + m_coef_y * p_seg.m_coef_y ;
   }
 
   //----------------------------------------------------------------------------
-  double segment::get_square_size(void)const
+  template <typename T> 
+  T segment<T>::get_square_size(void)const
   {
     return m_coef_x * m_coef_x+ m_coef_y * m_coef_y;
   }
 
   //----------------------------------------------------------------------------
-  bool segment::check_convex_continuation(const double & p_vec_prod,double & p_orient,bool p_init)
+  template <typename T> 
+  bool segment<T>::check_convex_continuation(const T & p_vec_prod,T & p_orient,bool p_init)
   {
     bool l_convex = true;
     if(p_orient < 0)
