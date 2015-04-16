@@ -244,7 +244,9 @@ namespace geometry
   template <typename T> 
   bool polygon<T>::contains(const point<T> & p,bool p_consider_line)const
   {
+#ifdef DEBUG
     std::cout << "Polygon " << *this << " contains " << p << " ? consider line = " << p_consider_line << std::endl ;
+#endif
     assert(m_convex_shape);
     if(!shape<T>::contains(p))
       {

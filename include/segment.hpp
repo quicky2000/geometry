@@ -23,11 +23,16 @@
 
 namespace geometry
 {
-  template <typename T=double> 
+  template <typename T> 
+  class segment;
+
+  template <typename T>
+  std::ostream & operator<<(std::ostream & p_stream, const segment<T> & p_segment);
+
+ template <typename T> 
   class segment
   {
-    template <typename Y>
-     friend  std::ostream & operator<<(std::ostream & p_stream, const segment<T> & p_segment);
+    friend  std::ostream & operator<< <>(std::ostream & p_stream, const segment<T> & p_segment);
   public:
     inline segment(const point<T> & p_source, const point<T> & dest);
     inline const point<T> & get_source(void)const;
@@ -45,7 +50,7 @@ namespace geometry
     inline const T & get_max_x(void)const;
     inline const T & get_min_y(void)const;
     inline const T & get_max_y(void)const;
-    inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init, bool p_consider_line=true);
+    inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init);
   private:
     point<T> m_source;
     point<T> m_dest;
@@ -187,7 +192,7 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T> 
-  bool segment<T>::check_convex_continuation(const T & p_vec_prod,T & p_orient,bool p_init, bool p_consider_line)
+  bool segment<T>::check_convex_continuation(const T & p_vec_prod,T & p_orient,bool p_init)
   {
     bool l_convex = true;
     if(p_orient < 0)
@@ -201,10 +206,6 @@ namespace geometry
     else if(p_init || !p_orient)
       {
 	p_orient = p_vec_prod;
-      }
-    if(!p_vec_prod && !p_consider_line)
-      {
-	return false;
       }
     return l_convex;
   }

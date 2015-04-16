@@ -79,13 +79,27 @@ namespace geometry
   template <typename T> 
   bool convex_shape<T>::contains(const point<T> & p,bool p_consider_line)const
   {
+#ifdef DEBUG
     std::cout << "Contains test of convex shape " << *this << " for point " << p << " consider line " << p_consider_line << std::endl;
+#endif
     T l_orient = 0;
     bool l_contain = true;
     for(unsigned int l_index = 0 ; l_index < this->get_nb_segment() && l_contain ; ++ l_index)
       {
-        T l_vectorial_product = this->get_segment(l_index).vectorial_product(segment<T>(this->get_segment(l_index).get_source(),p));
-	l_contain = segment<T>::check_convex_continuation(l_vectorial_product,l_orient,l_index == 0,p_consider_line && (!m_polygon_segments.size() || m_polygon_segments[l_index]));
+        const segment<T> & l_ref_segment = this->get_segment(l_index);
+#ifdef DEBUG
+        std::cout << l_ref_segment << std::endl ;
+#endif
+        if(p == l_ref_segment.get_source() || p == l_ref_segment.get_dest())
+          {
+            return p_consider_line;
+          }
+        T l_vectorial_product = l_ref_segment.vectorial_product(segment<T>(l_ref_segment.get_source(),p));
+        if(!l_vectorial_product && ((l_ref_segment.get_min_x() < p.get_x() && p.get_x() < l_ref_segment.get_max_x()) || (l_ref_segment.get_min_y() < p.get_y() && p.get_y() < l_ref_segment.get_max_y())))
+          {
+            return p_consider_line && (!m_polygon_segments.size() || m_polygon_segments[l_index]);
+          }
+	l_contain = segment<T>::check_convex_continuation(l_vectorial_product,l_orient,l_index == 0);
       }
     return l_contain;
   }
