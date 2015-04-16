@@ -41,6 +41,10 @@ namespace geometry
     inline T vectorial_product(const segment & p_seg)const;
     inline T scalar_product(const segment & p_seg)const;
     inline T get_square_size(void)const;
+    inline const T & get_min_x(void)const;
+    inline const T & get_max_x(void)const;
+    inline const T & get_min_y(void)const;
+    inline const T & get_max_y(void)const;
     inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init);
   private:
     point<T> m_source;
@@ -114,7 +118,7 @@ namespace geometry
     T l_x = m_source.get_x();
     if(!m_vertical)
       {
-	T l_t = (p_y - m_source.get_y())/(m_dest.get_y() - m_source.get_y());
+	double l_t = ((double)(p_y - m_source.get_y()))/((double)(m_dest.get_y() - m_source.get_y()));
 	l_x = (m_dest.get_x() - m_source.get_x()) * l_t + m_source.get_x();
       }
     return l_x;
@@ -128,7 +132,7 @@ namespace geometry
     T l_y = m_source.get_y();
     if(!m_horizontal)
       {
-	T l_t = (p_x - m_source.get_x())/(m_dest.get_x() - m_source.get_x());
+	double l_t = ((double)(p_x - m_source.get_x()))/((double)(m_dest.get_x() - m_source.get_x()));
 	l_y = (m_dest.get_y() - m_source.get_y()) * l_t + m_source.get_y();
       }
     return l_y;
@@ -138,15 +142,19 @@ namespace geometry
   template <typename T> 
   bool segment<T>::belong(const point<T> & p_point)const
   {
+    if(p_point == m_source || p_point == m_dest)
+      {
+	return true;
+      }
     if(!m_vertical && !m_horizontal)
       {
-        return p_point.get_y() == this->get_y(p_point.get_x()) && p_point.get_x() >= m_min_x && p_point.get_x() <= m_max_x && p_point.get_y() >= m_min_y && p_point.get_y() <= m_max_y;
+	return (! vectorial_product(segment<T>(m_source,p_point)) && m_min_x <= p_point.get_x() && p_point.get_x() <= m_max_x);
       }
     else if(m_vertical)
       {
-        return m_min_y <= p_point.get_y() && p_point.get_y() <= m_max_y;
+        return p_point.get_x() == m_min_x && m_min_y <= p_point.get_y() && p_point.get_y() <= m_max_y;
       }
-    return m_min_x <= p_point.get_x() && p_point.get_x() <= m_max_x;
+    return p_point.get_y() == m_min_y && m_min_x <= p_point.get_x() && p_point.get_x() <= m_max_x;
   }
 
   //----------------------------------------------------------------------------
@@ -196,6 +204,35 @@ namespace geometry
       }
     return l_convex;
   }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  const T & segment<T>::get_min_x(void)const
+  {
+    return m_min_x;
+  }
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  const T & segment<T>::get_max_x(void)const
+  {
+    return m_max_x;
+  }
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  const T & segment<T>::get_min_y(void)const
+  {
+    return m_min_y;
+  }
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  const T & segment<T>::get_max_y(void)const
+  {
+    return m_max_y;
+  }
+  
 }
 #endif /* _SEGMENT_HPP_ */
 //EOF
