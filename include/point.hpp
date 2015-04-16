@@ -33,6 +33,7 @@ namespace geometry
     inline const T & get_y(void)const;
     inline bool operator<(const point & p2)const; 
     inline bool operator!=(const point & p2)const; 
+    inline bool operator==(const point & p2)const;
   private:
     T m_x;
     T m_y;
@@ -80,6 +81,13 @@ namespace geometry
   bool point<T>::operator!=(const point & p2)const
   {
     return m_x != p2.m_x ||  m_y != p2.m_y;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  bool point<T>::operator==(const point & p2)const
+  {
+    return m_x == p2.m_x &&  m_y == p2.m_y;
   }
 }
 #endif /* _POINT_HPP_ */
