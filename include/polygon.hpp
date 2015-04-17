@@ -251,12 +251,15 @@ namespace geometry
 	    l_iter->cut_in_convex_polygon();
 	  }
       }
+    std::cout << "-----------------------------------------" << std::endl ;
+    std::cout << "Cutting polygon " << *this << std::endl ;
     m_quad = quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
-                               point<T>(this->get_max_x(),this->get_min_y()),
-                               point<T>(this->get_max_x(),this->get_max_y()),
-                               point<T>(this->get_min_x(),this->get_max_y()),
-                               this->get_points(),
-                               *this);
+				  point<T>(this->get_max_x(),this->get_min_y()),
+				  point<T>(this->get_max_x(),this->get_max_y()),
+				  point<T>(this->get_min_x(),this->get_max_y()),
+				  this->get_points(),
+				  *this,
+				  0);
   }
   //----------------------------------------------------------------------------
   template <typename T> 

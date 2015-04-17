@@ -28,18 +28,20 @@ namespace geometry
   {
   public:
     static inline quad_if<T> * create_quad(const point<T> & p_top_left_corner,
-				     const point<T> & p_top_right_corner,
-				     const point<T> & p_bottom_right_corner,
-				     const point<T> & p_bottom_left_corner,
-				     const std::vector<point<T>> & p_points,
-				     const shape<T> & p_shape);
+					   const point<T> & p_top_right_corner,
+					   const point<T> & p_bottom_right_corner,
+					   const point<T> & p_bottom_left_corner,
+					   const std::vector<point<T>> & p_points,
+					   const shape<T> & p_shape,
+					   const unsigned int & p_level);
 
     inline quad(const point<T> & p_top_left_corner,
 		const point<T> & p_top_right_corner,
 		const point<T> & p_bottom_right_corner,
 		const point<T> & p_bottom_left_corner,
 		const std::vector<point<T>> & p_points,
-		const shape<T> & p_shape);
+		const shape<T> & p_shape,
+		const unsigned int & p_level);
     inline bool contains(point<T> & p);
     static inline unsigned int compute_quadran(const point<T> & p,const point<T> & p_ref);
   private:
@@ -50,17 +52,15 @@ namespace geometry
   //----------------------------------------------------------------------------
   template <typename T>
   quad_if<T> * quad<T>::create_quad(const point<T> & p_top_left_corner,
-                              const point<T> & p_top_right_corner,
-                              const point<T> & p_bottom_right_corner,
-                              const point<T> & p_bottom_left_corner,
-                              const std::vector<point<T>> & p_points,
-                              const shape<T> & p_shape)
+				    const point<T> & p_top_right_corner,
+				    const point<T> & p_bottom_right_corner,
+				    const point<T> & p_bottom_left_corner,
+				    const std::vector<point<T>> & p_points,
+				    const shape<T> & p_shape,
+				    const unsigned int & p_level)
   {
-    std::cout << p_shape << std::endl ;
-    std::cout << p_top_left_corner << std::endl ;
-    std::cout <<  p_top_right_corner << std::endl ;
-    std::cout <<  p_bottom_right_corner << std::endl ;
-    std::cout <<  p_bottom_left_corner << std::endl ;
+    std::cout << std::string(2*p_level,'*') << "Create quad {" << p_top_left_corner << "," << p_top_right_corner << "," <<  p_bottom_right_corner << "," <<  p_bottom_left_corner << "}" << std::endl ;
+    //std::cout << p_shape << std::endl ;
     std::vector<point<T>> l_points;
     for(auto l_iter: p_points)
       {
@@ -107,10 +107,12 @@ namespace geometry
 	  }
 	if(l_all_inside)
 	  {
+	    std::cout << std::string(2*(p_level+1),'*') << "Basic quad {true}" << std::endl ;
 	    return new basic_quad<T,true>();
 	  }
 	else if(l_all_outside)
 	  {
+	    std::cout << std::string(2*(p_level+1),'*') << "Basic quad {false}" << std::endl ;
 	    return new basic_quad<T,false>();
 	  }
       }
@@ -121,21 +123,23 @@ namespace geometry
 		    p_bottom_right_corner,
 		    p_bottom_left_corner,
 		    l_points,
-		    p_shape);
+		    p_shape,
+		    p_level+1);
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   quad<T>::quad(const point<T> & p_top_left_corner,
-	     const point<T> & p_top_right_corner,
-	     const point<T> & p_bottom_right_corner,
-	     const point<T> & p_bottom_left_corner,
-	     const std::vector<point<T>> & p_points,
-	     const shape<T> & p_shape):
+		const point<T> & p_top_right_corner,
+		const point<T> & p_bottom_right_corner,
+		const point<T> & p_bottom_left_corner,
+		const std::vector<point<T>> & p_points,
+		const shape<T> & p_shape,
+		const unsigned int & p_level):
     m_children{nullptr,nullptr,nullptr,nullptr},
     m_reference_point(0,0)
   {
-    std::cout << "Quad constructor : " << p_points.size() << " internal points" << std::endl ;
+    std::cout << std::string(2*p_level,'*') << "Quad constructor : {" << p_top_left_corner << "," << p_top_right_corner << "," << p_bottom_right_corner << "," << p_bottom_left_corner << "} : "  << p_points.size() << " internal points" << std::endl ;
     if(p_points.size())
       {
 	// Compute reference point<T> coordinates
@@ -167,28 +171,49 @@ namespace geometry
 				    m_reference_point,
 				    point<T>(p_top_left_corner.get_x(),m_reference_point.get_y()),
 				    l_quadran_points[0],
-				    p_shape);
+				    p_shape,
+				    p_level + 1);
 	m_children[1] = create_quad(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),
 				    p_top_right_corner,
 				    point<T>(p_top_right_corner.get_x(),m_reference_point.get_y()),
 				    m_reference_point,
 				    l_quadran_points[1],
-				    p_shape);
+				    p_shape,
+				    p_level + 1);
 	m_children[2] = create_quad(m_reference_point,
 				    point<T>(p_bottom_right_corner.get_x(),m_reference_point.get_y()),
 				    p_bottom_right_corner,
 				    point<T>(m_reference_point.get_x(),p_bottom_right_corner.get_y()),
 				    l_quadran_points[2],
-				    p_shape);
+				    p_shape,
+				    p_level + 1);
 	m_children[3] = create_quad(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),
 				    m_reference_point,
 				    point<T>(m_reference_point.get_x(),p_bottom_left_corner.get_y()),
 				    p_bottom_left_corner,
 				    l_quadran_points[3],
-				    p_shape);
+				    p_shape,
+				    p_level + 1);
       }
     else
       {
+        std::cout << std::string(2*p_level,'*') << "???" << std::endl ;
+        std::vector<segment<T>> l_quad_segments = 
+          {segment<T>(p_top_left_corner,p_top_right_corner),
+           segment<T>(p_top_right_corner,p_bottom_right_corner),
+           segment<T>(p_bottom_left_corner,p_bottom_right_corner),
+           segment<T>(p_top_left_corner,p_bottom_left_corner)
+          };
+        for(unsigned int l_index=0;l_index < p_shape.get_nb_segment() ; ++l_index)
+          {
+            for(auto l_iter : l_quad_segments)
+              {
+                if(l_iter.intersec(p_shape.get_segment(l_index)))
+                  {
+                    std::cout << "Intersec with " << p_shape.get_segment(l_index) << std::endl;
+                  }
+              }
+          }
       }
   }
 
