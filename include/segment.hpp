@@ -43,8 +43,8 @@ namespace geometry
     inline T get_y(const T & p_x)const;
     inline bool belong(const point<T> & p_point)const;
     inline T get_side(const point<T> & p_point)const;
-    inline T vectorial_product(const segment & p_seg)const;
-    inline T scalar_product(const segment & p_seg)const;
+    inline T vectorial_product(const segment<T> & p_seg)const;
+    inline T scalar_product(const segment<T> & p_seg)const;
     inline T get_square_size(void)const;
     inline const T & get_min_x(void)const;
     inline const T & get_max_x(void)const;
@@ -123,8 +123,8 @@ namespace geometry
     T l_x = m_source.get_x();
     if(!m_vertical)
       {
-	double l_t = ((double)(p_y - m_source.get_y()))/((double)(m_dest.get_y() - m_source.get_y()));
-	l_x = (m_dest.get_x() - m_source.get_x()) * l_t + m_source.get_x();
+	double l_t = ((double)(p_y - m_source.get_y()))/((double)(m_coef_y));
+	l_x = m_coef_x * l_t + m_source.get_x();
       }
     return l_x;
   }
@@ -137,8 +137,8 @@ namespace geometry
     T l_y = m_source.get_y();
     if(!m_horizontal)
       {
-	double l_t = ((double)(p_x - m_source.get_x()))/((double)(m_dest.get_x() - m_source.get_x()));
-	l_y = (m_dest.get_y() - m_source.get_y()) * l_t + m_source.get_y();
+	double l_t = ((double)(p_x - m_source.get_x()))/((double)(m_coef_x));
+	l_y = m_coef_y * l_t + m_source.get_y();
       }
     return l_y;
   }
@@ -171,14 +171,14 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T> 
-  T segment<T>::vectorial_product(const segment & p_seg)const
+  T segment<T>::vectorial_product(const segment<T> & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_y - m_coef_y * p_seg.m_coef_x ;
   }
 
   //----------------------------------------------------------------------------
   template <typename T> 
-  T segment<T>::scalar_product(const segment & p_seg)const
+  T segment<T>::scalar_product(const segment<T> & p_seg)const
   {
     return m_coef_x * p_seg.m_coef_x + m_coef_y * p_seg.m_coef_y ;
   }
