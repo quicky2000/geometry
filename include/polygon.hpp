@@ -192,6 +192,10 @@ namespace geometry
         m_convex_shape->add(l_convex_wrapping[l_index]);
       }
     m_convex_shape->define_polygon_segments(l_polygon_segment);
+    if(l_result && m_convex_shape->get_nb_segment() > 3)
+      {
+         polygon<T>::create_quad();
+      }
     return l_result;
   }
 
@@ -204,7 +208,7 @@ namespace geometry
 			     point<T>(this->get_max_x(),this->get_max_y()),
 			     point<T>(this->get_min_x(),this->get_max_y()),
 			     this->get_points(),
-			     *this))
+                                *this,0))
 		       ;
   }
 
