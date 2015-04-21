@@ -216,13 +216,33 @@ namespace geometry
           };
         for(unsigned int l_index=0;l_index < p_shape.get_nb_segment() ; ++l_index)
           {
+            std::set<point<T>> l_intersections;
+            bool l_section = false;
             for(auto l_iter : l_quad_segments)
               {
-                if(l_iter.intersec(p_shape.get_segment(l_index)))
+                std::cout << "Check intersec between " << l_iter << " and " << p_shape.get_segment(l_index) << std::endl ;
+                bool l_single_point;
+                point<T> l_intersec_point(0,0);
+                if(l_iter.intersec(p_shape.get_segment(l_index),l_single_point,l_intersec_point))
                   {
-                    std::cout << l_iter << " intersec with " << p_shape.get_segment(l_index) << std::endl;
+                    std::cout << l_iter << " intersec with " << p_shape.get_segment(l_index) ;
+                    if(l_single_point)
+                      {
+                        l_intersections.insert(l_intersec_point);
+                        std::cout << " @ " << l_intersec_point ;
+                      }
+                    else
+                      {
+                        l_section = true;
+                      }
+                    std::cout << std::endl;
                   }
               }
+            if(l_section || l_intersections.size() >= 2)
+              {
+                std::cout << "==> " << p_shape.get_segment(l_index) << std::endl ;
+              }
+
           }
       }
   }
