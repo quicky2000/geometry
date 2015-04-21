@@ -61,6 +61,8 @@ namespace geometry
   {
     std::cout << std::string(2*p_level,'*') << "Create quad {" << p_top_left_corner << "," << p_top_right_corner << "," <<  p_bottom_right_corner << "," <<  p_bottom_left_corner << "}" << std::endl ;
     //std::cout << p_shape << std::endl ;
+
+    // Filter corner points
     std::vector<point<T>> l_points;
     for(auto l_iter: p_points)
       {
@@ -71,46 +73,29 @@ namespace geometry
       }
     if(!l_points.size())
       {
-	bool l_all_inside = true;
-	bool l_all_outside = true;
+	unsigned int l_corner_status = 0x0;
 	if(p_shape.contains(p_top_left_corner))
 	  {
-	    l_all_outside = false;
-	  }
-	else
-	  {
-	    l_all_inside = false;
+	    l_corner_status |= 0x8;
 	  }
 	if(p_shape.contains(p_top_right_corner))
 	  {
-	    l_all_outside = false;
-	  }
-	else
-	  {
-	    l_all_inside = false;
+	    l_corner_status |= 0x4;
 	  }
 	if(p_shape.contains(p_bottom_left_corner))
 	  {
-	    l_all_outside = false;
-	  }
-	else
-	  {
-	    l_all_inside = false;
+	    l_corner_status |= 0x2;
 	  }
 	if(p_shape.contains(p_bottom_right_corner))
 	  {
-	    l_all_outside = false;
+	    l_corner_status |= 0x1;
 	  }
-	else
-	  {
-	    l_all_inside = false;
-	  }
-	if(l_all_inside)
+	if(0xF == l_corner_status)
 	  {
 	    std::cout << std::string(2*(p_level+1),'*') << "Basic quad {true}" << std::endl ;
 	    return new basic_quad<T,true>();
 	  }
-	else if(l_all_outside)
+	else if(0x0 == l_corner_status)
 	  {
 	    std::cout << std::string(2*(p_level+1),'*') << "Basic quad {false}" << std::endl ;
 	    return new basic_quad<T,false>();
