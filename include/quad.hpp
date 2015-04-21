@@ -166,20 +166,27 @@ namespace geometry
 
 
 	// Iterate on quadran
-	m_children[0] = create_quad(p_top_left_corner,
-				    point<T>(m_reference_point.get_x(),p_top_left_corner.get_y()),
-				    m_reference_point,
-				    point<T>(p_top_left_corner.get_x(),m_reference_point.get_y()),
-				    l_quadran_points[0],
-				    p_shape,
-				    p_level + 1);
-	m_children[1] = create_quad(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),
-				    p_top_right_corner,
-				    point<T>(p_top_right_corner.get_x(),m_reference_point.get_y()),
-				    m_reference_point,
-				    l_quadran_points[1],
-				    p_shape,
-				    p_level + 1);
+	if(0 == compute_quadran(p_top_left_corner,m_reference_point))
+	  {
+	    m_children[0] = create_quad(p_top_left_corner,
+					point<T>(m_reference_point.get_x(),p_top_left_corner.get_y()),
+					m_reference_point,
+					point<T>(p_top_left_corner.get_x(),m_reference_point.get_y()),
+					l_quadran_points[0],
+					p_shape,
+					p_level + 1);
+	  }
+	if(1 == compute_quadran(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),m_reference_point))
+	  {
+	    m_children[1] = create_quad(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),
+					p_top_right_corner,
+					point<T>(p_top_right_corner.get_x(),m_reference_point.get_y()),
+					m_reference_point,
+					l_quadran_points[1],
+					p_shape,
+					p_level + 1);
+	  }
+	// No need to check this quad due to use of < in compute_quad. there is at least reference_point
 	m_children[2] = create_quad(m_reference_point,
 				    point<T>(p_bottom_right_corner.get_x(),m_reference_point.get_y()),
 				    p_bottom_right_corner,
@@ -187,13 +194,16 @@ namespace geometry
 				    l_quadran_points[2],
 				    p_shape,
 				    p_level + 1);
-	m_children[3] = create_quad(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),
+	if(3 == compute_quadran(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),m_reference_point))
+	  {
+	    m_children[3] = create_quad(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),
 				    m_reference_point,
 				    point<T>(m_reference_point.get_x(),p_bottom_left_corner.get_y()),
 				    p_bottom_left_corner,
 				    l_quadran_points[3],
 				    p_shape,
 				    p_level + 1);
+	  }
       }
     else
       {
@@ -210,7 +220,7 @@ namespace geometry
               {
                 if(l_iter.intersec(p_shape.get_segment(l_index)))
                   {
-                    std::cout << "Intersec with " << p_shape.get_segment(l_index) << std::endl;
+                    std::cout << l_iter << " intersec with " << p_shape.get_segment(l_index) << std::endl;
                   }
               }
           }
