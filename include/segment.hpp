@@ -54,6 +54,8 @@ namespace geometry
     inline bool intersec(const segment<T> & p_seg)const;
     inline bool intersec(const segment<T> & p_seg,bool & p_single_point,point<T> & p_intersec)const;
     inline static bool check_convex_continuation(const T & p_vec_prod,T & p_orient, bool p_init);
+
+    inline bool operator<(const segment<T> & p_seg)const;
   private:
     typedef enum class segment_orient {OTHER=0,HORIZONTAL,VERTICAL} t_segment_orient;
     point<T> m_source;
@@ -500,6 +502,17 @@ namespace geometry
   const T & segment<T>::get_max_y(void)const
   {
     return m_max_y;
+  }
+ 
+  //----------------------------------------------------------------------------
+  template <typename T>
+  bool segment<T>::operator<(const segment<T> & p_seg)const
+  {
+    if(m_source != p_seg.m_source)
+      {
+        return m_source < p_seg.m_source;
+      }
+    return m_dest < p_seg.m_dest;
   }
   
 }
