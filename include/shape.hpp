@@ -22,6 +22,7 @@
 #include "point.hpp"
 #include "segment.hpp"
 #include <vector>
+#include <set>
 #include <cinttypes>
 #include <limits>
 
@@ -44,6 +45,8 @@ namespace geometry
     inline const segment<T> & get_segment(const uint32_t & p_index)const;
     inline const point<T> & get_point(const uint32_t & p_index)const;
     inline virtual bool contains(const point<T> & p,bool p_consider_line=true)const=0;
+    inline bool is_vertice(const point<T> & p)const;
+    inline bool is_on_border(const point<T> & p)const;
     inline virtual ~shape(void){}
   protected:
     inline void internal_add(const point<T> & p_point);
@@ -52,6 +55,7 @@ namespace geometry
   private:
     std::vector<point<T>> m_points;
     std::vector<segment<T>> m_segments;
+    std::set<point<T>> m_sorted_points;
     T m_min_x;
     T m_max_x;
     T m_min_y;
@@ -79,6 +83,30 @@ namespace geometry
     m_min_y(std::numeric_limits<T>::max()),
     m_max_y(std::numeric_limits<T>::lowest())
   {
+  }
+
+  //------------------------------------------------------------------------------
+  template <typename T> 
+  bool shape<T>::is_vertice(const point<T> & p)const
+  {
+    return m_sorted_points.end() != m_sorted_points.find(p);
+  }
+  //------------------------------------------------------------------------------
+  template <typename T> 
+  bool shape<T>::is_on_border(const point<T> & p)const
+  {
+    if(is_vertice(p)) 
+      {
+        return true;
+      }
+    for(auto l_iter: m_segments)
+      {
+	if(l_iter.belong(p)) 
+	  {
+	    return true;
+	  }
+      }
+    return false;
   }
 
   //------------------------------------------------------------------------------
@@ -120,6 +148,7 @@ namespace geometry
     if(p_point.get_x() < m_min_x) m_min_x = p_point.get_x();
     if(p_point.get_y() < m_min_y) m_min_y = p_point.get_y();
     m_points.push_back(p_point);
+    m_sorted_points.insert(p_point);
   }
 
   //------------------------------------------------------------------------------
