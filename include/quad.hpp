@@ -77,6 +77,55 @@ namespace geometry
       }
     if(!l_points.size())
       {
+
+        // Compute intersec and border segments
+        std::cout << std::string(2*p_level,'*') << "???" << std::endl ;
+        std::vector<segment<T>> l_quad_segments = 
+          {segment<T>(p_top_left_corner,p_top_right_corner),
+           segment<T>(p_top_right_corner,p_bottom_right_corner),
+           segment<T>(p_bottom_left_corner,p_bottom_right_corner),
+           segment<T>(p_top_left_corner,p_bottom_left_corner)
+          };
+        std::set<segment<T>> l_border_segments;
+        std::set<segment<T>> l_intersec_segments;
+        for(unsigned int l_index=0;l_index < p_shape.get_nb_segment() ; ++l_index)
+          {
+            std::set<point<T>> l_intersections;
+            bool l_section = false;
+            for(auto l_iter : l_quad_segments)
+              {
+                std::cout << "Check intersec between " << l_iter << " and " << p_shape.get_segment(l_index) << std::endl ;
+                bool l_single_point;
+                point<T> l_intersec_point(0,0);
+                if(l_iter.intersec(p_shape.get_segment(l_index),l_single_point,l_intersec_point))
+                  {
+                    std::cout << l_iter << " intersec with " << p_shape.get_segment(l_index) ;
+                    if(l_single_point)
+                      {
+                        l_intersections.insert(l_intersec_point);
+                        std::cout << " @ " << l_intersec_point ;
+                      }
+                    else
+                      {
+                        l_section = true;
+                        l_border_segments.insert(p_shape.get_segment(l_index));
+                      }
+                    std::cout << std::endl;
+                  }
+              }
+            if(l_section || l_intersections.size() >= 2)
+              {
+                std::cout << "==> " << p_shape.get_segment(l_index) << std::endl ;
+                if(!l_section)
+                  {
+                    l_intersec_segments.insert(p_shape.get_segment(l_index));
+                  }
+              }
+
+          }
+
+        unsigned int l_quad_status = ((p_corner_belongs == 0) << 2) | ((l_border_segments.size() != 0) << 1) | l_intersec_segments.size();
+
         unsigned int l_corner_status = 0x0;
         if(p_shape.contains(p_top_left_corner))
           {
@@ -104,8 +153,8 @@ namespace geometry
             std::cout << std::string(2*(p_level+1),'*') << "Basic quad {false}" << std::endl ;
             return new basic_quad<T,false>();
           }
+        
       }
-
       
     return new quad(p_top_left_corner,
 		    p_top_right_corner,
@@ -116,7 +165,7 @@ namespace geometry
 		    p_shape,
 		    p_level+1);
   }
-
+  
   //----------------------------------------------------------------------------
   template <typename T>
   quad<T>::quad(const point<T> & p_top_left_corner,
@@ -128,163 +177,122 @@ namespace geometry
 		const shape<T> & p_shape,
 		const unsigned int & p_level):
     m_children{nullptr,nullptr,nullptr,nullptr},
-    m_reference_point(0,0)
-  {
-    std::cout << std::string(2*p_level,'*') << "Quad constructor : {" << p_top_left_corner << "," << p_top_right_corner << "," << p_bottom_right_corner << "," << p_bottom_left_corner << "} : "  << p_points.size() << " internal points" << std::endl ;
-    if(p_points.size())
-      {
-	// Compute reference point<T> coordinates
-	double m_x_acc=0;
-	double m_y_acc=0;
-	for(auto l_iter : p_points)
-	  {
-	    m_x_acc += l_iter.get_x();
-	    m_y_acc += l_iter.get_y();
-	  }
-	m_reference_point = point<T>(m_x_acc / p_points.size(),m_y_acc / p_points.size());
-	std::cout << "Reference point " << m_reference_point << std::endl ;
+                                                           m_reference_point(0,0)
+    {
+      std::cout << std::string(2*p_level,'*') << "Quad constructor : {" << p_top_left_corner << "," << p_top_right_corner << "," << p_bottom_right_corner << "," << p_bottom_left_corner << "} : "  << p_points.size() << " internal points" << std::endl ;
 
-	// Split along quadrants
-	std::vector<point<T>> l_quadran_points[4];
-	for(auto l_iter : p_points)
-	  {
-	    if(l_iter != m_reference_point)
-	      {
-		unsigned int l_index = compute_quadran(l_iter,m_reference_point);
-		l_quadran_points[l_index].push_back(l_iter);
-	      }
-	  }
+      assert(p_points.size());
+      // Compute reference point<T> coordinates
+      double m_x_acc=0;
+      double m_y_acc=0;
+      for(auto l_iter : p_points)
+        {
+          m_x_acc += l_iter.get_x();
+          m_y_acc += l_iter.get_y();
+        }
+      m_reference_point = point<T>(m_x_acc / p_points.size(),m_y_acc / p_points.size());
+      std::cout << "Reference point " << m_reference_point << std::endl ;
+
+      // Split along quadrants
+      std::vector<point<T>> l_quadran_points[4];
+      for(auto l_iter : p_points)
+        {
+          if(l_iter != m_reference_point)
+            {
+              unsigned int l_index = compute_quadran(l_iter,m_reference_point);
+              l_quadran_points[l_index].push_back(l_iter);
+            }
+        }
 
 
-	// Iterate on quadran
-	if(0 == compute_quadran(p_top_left_corner,m_reference_point))
-	  {
-            // Define new corners
-            point<T> l_new_top_right_corner = point<T>(m_reference_point.get_x(),p_top_left_corner.get_y());
-            point<T> l_new_bottom_left_corner = point<T>(p_top_left_corner.get_x(),m_reference_point.get_y());
+      // Iterate on quadran
+      if(0 == compute_quadran(p_top_left_corner,m_reference_point))
+        {
+          // Define new corners
+          point<T> l_new_top_right_corner = point<T>(m_reference_point.get_x(),p_top_left_corner.get_y());
+          point<T> l_new_bottom_left_corner = point<T>(p_top_left_corner.get_x(),m_reference_point.get_y());
 
-            // Compute corner belongs
-            unsigned int l_corner_belongs = (p_corner_belongs & 0x8) != 0;
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_top_right_corner);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_left_corner);
+          // Compute corner belongs
+          unsigned int l_corner_belongs = (p_corner_belongs & 0x8) != 0;
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_top_right_corner);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_left_corner);
 
-            // Create quad
-	    m_children[0] = create_quad(p_top_left_corner,
-					l_new_top_right_corner,
-					m_reference_point,
-					l_new_bottom_left_corner,
-                                        l_corner_belongs,
-					l_quadran_points[0],
-					p_shape,
-					p_level + 1);
-	  }
-	if(1 == compute_quadran(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),m_reference_point))
-	  {
-            // Define new corners
-            point<T> l_new_top_left_corner = point<T>(m_reference_point.get_x(),p_top_right_corner.get_y());
-            point<T> l_new_bottom_right_corner = point<T>(p_top_right_corner.get_x(),m_reference_point.get_y());
+          // Create quad
+          m_children[0] = create_quad(p_top_left_corner,
+                                      l_new_top_right_corner,
+                                      m_reference_point,
+                                      l_new_bottom_left_corner,
+                                      l_corner_belongs,
+                                      l_quadran_points[0],
+                                      p_shape,
+                                      p_level + 1);
+        }
+      if(1 == compute_quadran(point<T>(m_reference_point.get_x(),p_top_right_corner.get_y()),m_reference_point))
+        {
+          // Define new corners
+          point<T> l_new_top_left_corner = point<T>(m_reference_point.get_x(),p_top_right_corner.get_y());
+          point<T> l_new_bottom_right_corner = point<T>(p_top_right_corner.get_x(),m_reference_point.get_y());
 
-            // Compute corner belongs
-            unsigned int l_corner_belongs = p_shape.is_on_border(l_new_top_left_corner);
-            l_corner_belongs = (l_corner_belongs << 1) | ((p_corner_belongs & 0x4) != 0);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_right_corner);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
+          // Compute corner belongs
+          unsigned int l_corner_belongs = p_shape.is_on_border(l_new_top_left_corner);
+          l_corner_belongs = (l_corner_belongs << 1) | ((p_corner_belongs & 0x4) != 0);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_right_corner);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
 
-            // Create quad
-            m_children[1] = create_quad(l_new_top_left_corner,
-					p_top_right_corner,
-					l_new_bottom_right_corner,
-					m_reference_point,
-                                        l_corner_belongs,
-					l_quadran_points[1],
-					p_shape,
-					p_level + 1);
-	  }
-        // Define new corners
-        point<T> l_new_top_right_corner = point<T>(p_bottom_right_corner.get_x(),m_reference_point.get_y());
-        point<T> l_new_bottom_left_corner = point<T>(m_reference_point.get_x(),p_bottom_right_corner.get_y());
+          // Create quad
+          m_children[1] = create_quad(l_new_top_left_corner,
+                                      p_top_right_corner,
+                                      l_new_bottom_right_corner,
+                                      m_reference_point,
+                                      l_corner_belongs,
+                                      l_quadran_points[1],
+                                      p_shape,
+                                      p_level + 1);
+        }
+      // Define new corners
+      point<T> l_new_top_right_corner = point<T>(p_bottom_right_corner.get_x(),m_reference_point.get_y());
+      point<T> l_new_bottom_left_corner = point<T>(m_reference_point.get_x(),p_bottom_right_corner.get_y());
 
-        // Compute corner belongs
-        unsigned int l_corner_belongs = p_shape.is_on_border(m_reference_point);
-        l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_top_right_corner);
-        l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(p_bottom_right_corner);
-        l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_left_corner);
+      // Compute corner belongs
+      unsigned int l_corner_belongs = p_shape.is_on_border(m_reference_point);
+      l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_top_right_corner);
+      l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(p_bottom_right_corner);
+      l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_left_corner);
 
-	// No need to check this quad due to use of < in compute_quad. there is at least reference_point
-	m_children[2] = create_quad(m_reference_point,
-				    l_new_top_right_corner,
-				    p_bottom_right_corner,
-				    l_new_bottom_left_corner,
-                                    l_corner_belongs,
-				    l_quadran_points[2],
-				    p_shape,
-				    p_level + 1);
+      // No need to check this quad due to use of < in compute_quad. there is at least reference_point
+      m_children[2] = create_quad(m_reference_point,
+                                  l_new_top_right_corner,
+                                  p_bottom_right_corner,
+                                  l_new_bottom_left_corner,
+                                  l_corner_belongs,
+                                  l_quadran_points[2],
+                                  p_shape,
+                                  p_level + 1);
 
-	if(3 == compute_quadran(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),m_reference_point))
-	  {
-            // Define new corners
-            point<T> l_new_top_left_corner = point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y());
-            point<T> l_new_bottom_right_corner = point<T>(m_reference_point.get_x(),p_bottom_left_corner.get_y());
+      if(3 == compute_quadran(point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y()),m_reference_point))
+        {
+          // Define new corners
+          point<T> l_new_top_left_corner = point<T>(p_bottom_left_corner.get_x(),m_reference_point.get_y());
+          point<T> l_new_bottom_right_corner = point<T>(m_reference_point.get_x(),p_bottom_left_corner.get_y());
 
-            // Compute corner belongs
-            unsigned int l_corner_belongs = p_shape.is_on_border(l_new_top_left_corner);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_right_corner);
-            l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(p_bottom_left_corner);
+          // Compute corner belongs
+          unsigned int l_corner_belongs = p_shape.is_on_border(l_new_top_left_corner);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(m_reference_point);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(l_new_bottom_right_corner);
+          l_corner_belongs = (l_corner_belongs << 1) | p_shape.is_on_border(p_bottom_left_corner);
             
-            // Create quad
-            m_children[3] = create_quad(l_new_top_left_corner,
-                                        m_reference_point,
-                                        l_new_bottom_right_corner,
-                                        p_bottom_left_corner,
-                                        l_corner_belongs,
-                                        l_quadran_points[3],
-                                        p_shape,
-                                        p_level + 1);
-	  }
-      }
-    else
-      {
-        std::cout << std::string(2*p_level,'*') << "???" << std::endl ;
-        std::vector<segment<T>> l_quad_segments = 
-          {segment<T>(p_top_left_corner,p_top_right_corner),
-           segment<T>(p_top_right_corner,p_bottom_right_corner),
-           segment<T>(p_bottom_left_corner,p_bottom_right_corner),
-           segment<T>(p_top_left_corner,p_bottom_left_corner)
-          };
-        for(unsigned int l_index=0;l_index < p_shape.get_nb_segment() ; ++l_index)
-          {
-            std::set<point<T>> l_intersections;
-            bool l_section = false;
-            for(auto l_iter : l_quad_segments)
-              {
-                std::cout << "Check intersec between " << l_iter << " and " << p_shape.get_segment(l_index) << std::endl ;
-                bool l_single_point;
-                point<T> l_intersec_point(0,0);
-                if(l_iter.intersec(p_shape.get_segment(l_index),l_single_point,l_intersec_point))
-                  {
-                    std::cout << l_iter << " intersec with " << p_shape.get_segment(l_index) ;
-                    if(l_single_point)
-                      {
-                        l_intersections.insert(l_intersec_point);
-                        std::cout << " @ " << l_intersec_point ;
-                      }
-                    else
-                      {
-                        l_section = true;
-                      }
-                    std::cout << std::endl;
-                  }
-              }
-            if(l_section || l_intersections.size() >= 2)
-              {
-                std::cout << "==> " << p_shape.get_segment(l_index) << std::endl ;
-              }
-
-          }
-      }
-  }
+          // Create quad
+          m_children[3] = create_quad(l_new_top_left_corner,
+                                      m_reference_point,
+                                      l_new_bottom_right_corner,
+                                      p_bottom_left_corner,
+                                      l_corner_belongs,
+                                      l_quadran_points[3],
+                                      p_shape,
+                                      p_level + 1);
+        }
+    }
 
   //----------------------------------------------------------------------------
   template <typename T>
