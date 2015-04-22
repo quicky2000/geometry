@@ -20,6 +20,7 @@
 
 #include "quad_if.hpp"
 #include "basic_quad.hpp"
+#include "quad_border_intersec.hpp"
 #include <iomanip>
 
 namespace geometry
@@ -125,34 +126,63 @@ namespace geometry
           }
 
         unsigned int l_quad_status = ((p_corner_belongs == 0) << 2) | ((l_border_segments.size() != 0) << 1) | l_intersec_segments.size();
+        switch(l_quad_status)
+          {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            {
+              const point<T> l_corners[4] = 
+                {p_top_left_corner,
+                 p_top_right_corner,
+                 p_bottom_right_corner,
+                 p_bottom_left_corner
+                };
+              return new quad_border_intersec<T>(l_corners,p_corner_belongs,l_border_segments,l_intersec_segments,p_shape);
+            }
+            break;
+          case 4:
+            {
+              unsigned int l_corner_status = 0x0;
+              if(p_shape.contains(p_top_left_corner))
+                {
+                  l_corner_status |= 0x8;
+                }
+              if(p_shape.contains(p_top_right_corner))
+                {
+                  l_corner_status |= 0x4;
+                }
+              if(p_shape.contains(p_bottom_left_corner))
+                {
+                  l_corner_status |= 0x2;
+                }
+              if(p_shape.contains(p_bottom_right_corner))
+                {
+                  l_corner_status |= 0x1;
+                }
+              if(0xF == l_corner_status)
+                {
+                  std::cout << std::string(2*(p_level+1),'*') << "Basic quad {true}" << std::endl ;
+                  return new basic_quad<T,true>();
+                }
+              else if(0x0 == l_corner_status)
+                {
+                  std::cout << std::string(2*(p_level+1),'*') << "Basic quad {false}" << std::endl ;
+                  return new basic_quad<T,false>();
+                }
+              std::cout << "Impossible case !!! 0x" << std::hex << l_corner_status << std::dec << std::endl ;
+              exit(-1);
+            }
+            break;
+          default:
+            std::cout << "Unmanaged class of quads : " << l_quad_status << std::endl ;
+            if(l_quad_status & 0x4) std::cout << "_ No corners on shape borders" << std::endl ;
+            if(l_quad_status & 0x2) std::cout << "_ Borders on shape border" << std::endl ;
+            if(l_quad_status & 0x1) std::cout << "_ Intersection between border and shape borders" << std::endl ;
+            exit(-1);
+          }
 
-        unsigned int l_corner_status = 0x0;
-        if(p_shape.contains(p_top_left_corner))
-          {
-            l_corner_status |= 0x8;
-          }
-        if(p_shape.contains(p_top_right_corner))
-          {
-            l_corner_status |= 0x4;
-          }
-        if(p_shape.contains(p_bottom_left_corner))
-          {
-            l_corner_status |= 0x2;
-          }
-        if(p_shape.contains(p_bottom_right_corner))
-          {
-            l_corner_status |= 0x1;
-          }
-        if(0xF == l_corner_status)
-          {
-            std::cout << std::string(2*(p_level+1),'*') << "Basic quad {true}" << std::endl ;
-            return new basic_quad<T,true>();
-          }
-        else if(0x0 == l_corner_status)
-          {
-            std::cout << std::string(2*(p_level+1),'*') << "Basic quad {false}" << std::endl ;
-            return new basic_quad<T,false>();
-          }
         
       }
       
