@@ -25,12 +25,12 @@ namespace geometry
   class basic_quad: public quad_if<T>
   {
   public:
-    inline bool contains(point<T> & p);
+    inline bool contains(point<T> & p,bool p_consider_border=true);
   private:
   };
 
   template <typename T,bool RESULT>
-  bool  basic_quad<T,RESULT>::contains(point<T> & p)
+  bool  basic_quad<T,RESULT>::contains(point<T> & p,bool p_consider_border)
   {
     return RESULT;
   }

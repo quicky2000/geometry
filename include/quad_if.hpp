@@ -26,7 +26,7 @@ namespace geometry
   class quad_if
   {
   public:
-    virtual bool contains(point<T> & p)=0;
+    virtual bool contains(point<T> & p,bool p_consider_border=true)=0;
     virtual inline ~quad_if(void){}
   private:
   };
