@@ -215,16 +215,14 @@ namespace geometry
       {
         l_corner_belongs = (l_corner_belongs << 1) | this->is_on_border(l_iter);
       }
-    delete(quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
-                                point<T>(this->get_max_x(),this->get_min_y()),
-                                point<T>(this->get_max_x(),this->get_max_y()),
-                                point<T>(this->get_min_x(),this->get_max_y()),
-                                l_corner_belongs,
-                                this->get_points(),
-                                *this,0
-                                )
-           )
-		       ;
+    m_quad = quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
+				  point<T>(this->get_max_x(),this->get_min_y()),
+				  point<T>(this->get_max_x(),this->get_max_y()),
+				  point<T>(this->get_min_x(),this->get_max_y()),
+				  l_corner_belongs,
+				  this->get_points(),
+				  *this,0
+				  );
   }
 
   //----------------------------------------------------------------------------
@@ -287,11 +285,15 @@ namespace geometry
 #ifdef DEBUG
     std::cout << "Polygon " << *this << " contains " << p << " ? consider line = " << p_consider_line << std::endl ;
 #endif
-    assert(m_convex_shape);
     if(!shape<T>::contains(p))
       {
 	return false;
       }
+    if(nullptr != m_quad)
+      {
+	return m_quad->contains(p,p_consider_line);
+      }
+    assert(m_convex_shape);
     if(m_convex_shape->contains(p,p_consider_line))
       {
 	for(auto l_iter : m_outside_polygons)
