@@ -34,7 +34,7 @@ namespace geometry
                                 const std::set<segment<T>> & p_intersecs,
                                 const shape<T> & p_shape
                                 );
-    inline bool contains(point<T> & p,bool p_consider_border=true);
+    inline bool contains(const point<T> & p,bool p_consider_border=true);
   private:
     const point<T> m_corners[4];
     const unsigned int m_corner_belongs;
@@ -100,7 +100,7 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T>
-  bool  quad_border_intersec<T>::contains(point<T> & p,
+  bool  quad_border_intersec<T>::contains(const point<T> & p,
                                           bool p_consider_border)
   {
     unsigned int l_corner_mask = 0x8;

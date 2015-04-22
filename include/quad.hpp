@@ -46,7 +46,7 @@ namespace geometry
 		const std::vector<point<T>> & p_points,
 		const shape<T> & p_shape,
 		const unsigned int & p_level);
-    inline bool contains(point<T> & p,bool p_consider_border=true);
+    inline bool contains(const point<T> & p,bool p_consider_border=true);
     static inline unsigned int compute_quadran(const point<T> & p,const point<T> & p_ref);
   private:
     quad_if<T>* m_children[4];
@@ -334,7 +334,7 @@ namespace geometry
 
   //----------------------------------------------------------------------------
   template <typename T>
-  bool quad<T>::contains(point<T> & p,bool p_consider_border)
+  bool quad<T>::contains(const point<T> & p,bool p_consider_border)
   {
     unsigned int l_index = compute_quadran(p,m_reference_point);
     return m_children[l_index]->contains(p,p_consider_border);
