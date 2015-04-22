@@ -203,12 +203,27 @@ namespace geometry
   template <typename T> 
   void polygon<T>::create_quad(void)
   {
+    std::vector<point<T>> l_quad_corners = 
+      {
+        point<T>(this->get_min_x(),this->get_min_y()),
+        point<T>(this->get_max_x(),this->get_min_y()),
+        point<T>(this->get_max_x(),this->get_max_y()),
+        point<T>(this->get_min_x(),this->get_max_y())
+      };
+    unsigned int l_corner_belongs = 0x0;
+    for(auto l_iter : l_quad_corners)
+      {
+        l_corner_belongs = (l_corner_belongs << 1) | this->is_on_border(l_iter);
+      }
     delete(quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
-			     point<T>(this->get_max_x(),this->get_min_y()),
-			     point<T>(this->get_max_x(),this->get_max_y()),
-			     point<T>(this->get_min_x(),this->get_max_y()),
-			     this->get_points(),
-                                *this,0))
+                                point<T>(this->get_max_x(),this->get_min_y()),
+                                point<T>(this->get_max_x(),this->get_max_y()),
+                                point<T>(this->get_min_x(),this->get_max_y()),
+                                l_corner_belongs,
+                                this->get_points(),
+                                *this,0
+                                )
+           )
 		       ;
   }
 
@@ -257,13 +272,7 @@ namespace geometry
       }
     std::cout << "-----------------------------------------" << std::endl ;
     std::cout << "Cutting polygon " << *this << std::endl ;
-    m_quad = quad<T>::create_quad(point<T>(this->get_min_x(),this->get_min_y()),
-				  point<T>(this->get_max_x(),this->get_min_y()),
-				  point<T>(this->get_max_x(),this->get_max_y()),
-				  point<T>(this->get_min_x(),this->get_max_y()),
-				  this->get_points(),
-				  *this,
-				  0);
+    create_quad();
   }
   //----------------------------------------------------------------------------
   template <typename T> 
